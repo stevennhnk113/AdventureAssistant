@@ -1,0 +1,19 @@
+{
+  "deploy_settings": {
+    "default": {
+      "skill_id": "amzn1.ask.skill.b0a827ac-7bc2-4aff-8e2b-8c07f25e33f6",
+      "was_cloned": true,
+      "merge": {
+        "manifest": {
+          "apis": {
+            "custom": {
+              "endpoint": {
+                "uri": "arn:aws:lambda:us-east-1:147881111193:function:AdventureAssistant"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

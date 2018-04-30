@@ -1,0 +1,192 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "my adventure assistant",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "OpenAList",
+          "slots": [
+            {
+              "name": "ListType",
+              "type": "ListType",
+              "samples": [
+                "open {ListType} list",
+                "show me my {ListType} list",
+                "show me {ListType} list",
+                "open my {ListType} list",
+                "how about {ListType} list",
+                "{ListType} list"
+              ]
+            },
+            {
+              "name": "CreateNewListConfirmation",
+              "type": "YesNoType"
+            }
+          ],
+          "samples": [
+            "tell me {ListType} list",
+            "tell me my {ListType} list",
+            "open my list",
+            "show me my list",
+            "I want to see {ListType} list",
+            "I want to see my {ListType} list",
+            "show me a list",
+            "open a list",
+            "what is in my {ListType} list",
+            "show me {ListType} list",
+            "open {ListType} list",
+            "open my {ListType} list"
+          ]
+        },
+        {
+          "name": "GoingOutIntent",
+          "samples": [
+            "I am out",
+            "I am off",
+            "I am leaving"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "name": {
+                "value": "bar"
+              }
+            },
+            {
+              "name": {
+                "value": "home"
+              }
+            },
+            {
+              "name": {
+                "value": "school"
+              }
+            },
+            {
+              "name": {
+                "value": "work"
+              }
+            },
+            {
+              "name": {
+                "value": "sleeping"
+              }
+            },
+            {
+              "name": {
+                "value": "eating"
+              }
+            },
+            {
+              "name": {
+                "value": "dating"
+              }
+            },
+            {
+              "name": {
+                "value": "working"
+              }
+            },
+            {
+              "name": {
+                "value": "working out"
+              }
+            },
+            {
+              "name": {
+                "value": "Hiking"
+              }
+            }
+          ],
+          "name": "ListType"
+        },
+        {
+          "values": [
+            {
+              "id": "FALSE",
+              "name": {
+                "value": "No",
+                "synonyms": [
+                  "Nope"
+                ]
+              }
+            },
+            {
+              "id": "TRUE",
+              "name": {
+                "value": "Yes",
+                "synonyms": [
+                  "Yep"
+                ]
+              }
+            }
+          ],
+          "name": "YesNoType"
+        }
+      ]
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "OpenAList",
+          "confirmationRequired": false,
+          "slots": [
+            {
+              "name": "ListType",
+              "type": "ListType",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.476740650415.615170334476"
+              }
+            },
+            {
+              "name": "CreateNewListConfirmation",
+              "type": "YesNoType",
+              "elicitationRequired": false,
+              "confirmationRequired": false
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.476740650415.615170334476",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Which one?"
+          },
+          {
+            "type": "PlainText",
+            "value": "What should I open?"
+          },
+          {
+            "type": "PlainText",
+            "value": "What list do you want to open?"
+          },
+          {
+            "type": "PlainText",
+            "value": "What do you want to open?"
+          }
+        ]
+      }
+    ]
+  }
+}
