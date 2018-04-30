@@ -38,7 +38,7 @@ var handlers = {
 		var country = "country=us";
 		var apiKey = "apiKey=abf132c54ec14a7a8d3817cb48abee71";
 
-		var toBringItemSpeech = GetToBringItemSpeech(this);
+		speakString += "First, " + GetToBringItemSpeech(this);
 
 		const das = new Alexa.services.DeviceAddressService();
 		das.getFullAddress(deviceId, apiEndpoint, apiAccessToken)
@@ -48,138 +48,28 @@ var handlers = {
 				"json": true,
 			}))
 			.then((data) => {
-				console.log(data);
-				speakString += GetWeatherConditionSpeech(data.weather[0].id);
-				speakString += "And " + toBringItemSpeech;
+				speakString += "Second, about the weather, " + GetWeatherConditionSpeech(data.weather[0].id);
 			})
 			.then(() => GetNews(true))
 			.then((data) => {
-				console.log("Getting final string");
-				speakString += GetNewsSpeech(data);
+				speakString += "Last but not least, the news, " + data;
 
 				this.response.speak(speakString);
 				this.emit(':responseReady');
 			})
 			.catch((error) => {
-				console.log(error);
-				this.response.speak('error');
+				this.response.speak('There is an error, please try again.');
 				this.emit(':responseReady');
 			});
 	},
 
-	'OpenListIntent': function () {
-		console.log("Intent started OpenAList");
-		const slotType = "ListType";
+	'OpenListIntent': OpenListIntent,
 
-		const itemListName = GetSlotValue(this, slotType);
-		if (itemListName == null) {
-			this.emit(":delegate");
-			return;
-		}
+	'AddItemToListIntent': AddItemToListIntent,
 
-		const createNewListConfirmation = GetSlotValue(this, "CreateNewListConfirmation");
+	'RemoveItemFromAList': RemoveItemFromListIntent,
 
-		const itemList = GetList(this, itemListName);
-
-		if (itemList === null) {
-			this.response.speak("You do not have a " + itemListName + " list. Do you want to open another one?");
-			this.emit(":responseReady");
-			return;
-		}
-
-		if (itemList.length === 0) {
-			this.handler.state = "AddItemState";
-			this.response.speak("You do not have any item in your " + itemListName + " list. Do you want to add items to this list?").listen("Do you want to add items to this list?");
-		} else if (itemList.length === 1) {
-			this.response.speak("You have a " + itemList.toString()).listen();
-		} else {
-			this.response.speak("You have " + itemList.toString()).listen();
-		}
-
-		this.emit(":responseReady");
-	},
-
-	'AddItemToAList': function () {
-		console.log("Intent started AddItemToAList");
-		const activityType = "ListType";
-		const itemType = "ItemType";
-
-		const listName = GetSlotValue(this, activityType);
-		if (listName == null) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const itemName = GetSlotValue(this, itemType);
-		if (itemName == null) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const result = AddItemToList(this, listName, itemName);
-
-		if (result == 1) {
-			this.response.speak("I just add " + itemName + " to " + listName + " list.");
-		} else if (result == 0) {
-			this.response.speak("The item is already there");
-		} else {
-			this.response.speak("You do not have a " + listName + " list");
-		}
-
-		this.emit(":responseReady");
-	},
-
-	'RemoveItemFromAList': function () {
-		console.log("Intent started AddItemToAList");
-		const activityType = "ListType";
-		const itemType = "ItemType";
-
-		if (!IsSlotValueFilled(this, activityType)) {
-			this.emit(":delegate");
-			return;
-		}
-
-		if (!IsSlotValueFilled(this, itemType)) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const listName = GetSlotValue(this, activityType);
-		const itemName = GetSlotValue(this, itemType);
-
-		const result = AddItemToAList(this, listName, itemName);
-
-		if (result == 1) {
-			this.response.speak("I just remove " + item + " to " + listName + " list.");
-		} else if (result == 0) {
-			this.response.speak("You don't have that item in the list");
-		} else {
-			this.response.speak("You do not have a " + listName + " list");
-		}
-
-		this.emit(":responseReady");
-	},
-
-	'EmptyAList': function () {
-		console.log("Intent started EmptyAList");
-		const slotName = "ListType";
-
-		if (!IsSlotValueFilled(this, slotName)) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const itemListName = GetSlotValue(this, slotName);
-		const result = EmptyList(this, itemListName);
-
-		if (result) {
-			this.response.speak("I just empty your " + itemListName + " list");
-		} else {
-			this.response.speak("You do not have a " + itemListName + " list");
-		}
-
-		this.emit(":responseReady");
-	},
+	'EmptyListIntent': EmptyListIntent,
 
 	'AMAZON.CancelIntent': CancelIntent,
 	'AMAZON.HelpIntent': HelpIntent,
@@ -188,75 +78,82 @@ var handlers = {
 };
 
 // Item CRUD
-var AddItemHandlers = Alexa.CreateStateHandler("AddItemState", {
-	'AddItemToAList': function () {
-		console.log("Intent started AddItemToAList AddItemHandlers");
-		const activityType = "ListType";
-		const itemType = "ItemType";
-
-		const listName = GetSlotValue(this, activityType);
-		if (listName == null) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const itemName = GetSlotValue(this, itemType);
-		if (itemName == null) {
-			this.emit(":delegate");
-			return;
-		}
-
-		const result = AddItemToList(this, listName, itemName);
-
-		if (result == 1) {
-			this.response.speak("I just add " + itemName + " to " + listName + " list.");
-		} else if (result == 0) {
-			this.response.speak("The item is already there");
-		} else {
-			this.response.speak("You do not have a " + listName + " list");
-		}
-
-		this.emit(":responseReady");
-	},
-
-	'AMAZON.YesIntent': function () {
-		this.response.speak('What item do you want to add?').listen();
-		this.emit(':responseReady');
-	},
-
-	'AMAZON.NoIntent': function () {
-		this.response.speak('Let me know what else I can do.');
-		this.emit(':responseReady');
-	},
-
-	'AMAZON.CancelIntent': CancelIntent,
-	'AMAZON.HelpIntent': HelpIntent,
-	'AMAZON.StopIntent': StopIntent,
-	'SessionEndedRequest': SessionEndedRequest
-});
-
-function OpenAlwaysListIntent() {
+function OpenListIntent() {
 	console.log("Intent started OpenAlwaysListIntent");
-	const slotType = "ListType";
 
-	const itemListName = "always";
-	SetSlotValue(this, slotType, itemListName);
-
-	const itemList = GetList(this, itemListName);
-
-	if (itemList === null) {
-		this.response.speak("You do not have a " + itemListName + " list. Do you want to open another one?");
-		this.emit(":responseReady");
-		return;
-	}
+	const listName = "always";
+	const itemList = GetList(this, listName);
 
 	if (itemList.length === 0) {
-		this.handler.state = "AddItemState";
-		this.response.speak("You do not have any item in your " + itemListName + " list. Do you want to add items to this list?").listen("Do you want to add items to this list?");
+		this.response.speak("You do not have any item in your to bring list. You can say, add item to add item to your list").listen("You can say, add item to add item to your list");
 	} else if (itemList.length === 1) {
 		this.response.speak("You have a " + itemList.toString()).listen();
 	} else {
 		this.response.speak("You have " + itemList.toString()).listen();
+	}
+
+	this.emit(":responseReady");
+}
+
+function AddItemToListIntent() {
+	console.log("Intent started AddItemToList");
+	const itemType = "ItemType";
+
+	const listName = "always"
+
+	const itemName = GetSlotValue(this, itemType);
+	if (itemName == null) {
+		this.emit(":delegate");
+		return;
+	}
+
+	const result = AddItemToList(this, listName, itemName);
+
+	if (result == 1) {
+		this.response.speak("I just add " + itemName + " to " + listName + " list.");
+	} else if (result == 0) {
+		this.response.speak("The item is already there");
+	} else {
+		this.response.speak("You do not have a " + listName + " list");
+	}
+
+	this.emit(":responseReady");
+}
+
+function RemoveItemFromListIntent() {
+	console.log("Intent started RemoveItemFromListIntent");
+	const itemType = "ItemType";
+	const listName = "always";
+
+	const itemName = GetSlotValue(this, itemType);
+	if (itemName == null) {
+		this.emit(":delegate");
+		return;
+	}
+
+	const result = RemoveItemFromList(this, listName, itemName);
+
+	if (result == 1) {
+		this.response.speak("I just remove " + item + " to " + listName + " list.");
+	} else if (result == 0) {
+		this.response.speak("You don't have that item in the list");
+	} else {
+		this.response.speak("You do not have a " + listName + " list");
+	}
+
+	this.emit(":responseReady");
+}
+
+function EmptyListIntent() {
+	console.log("Intent started EmptyAList");
+	const listName = "always";
+
+	const result = EmptyList(this, itemListName);
+
+	if (result) {
+		this.response.speak("I just empty your to bring item list");
+	} else {
+		this.response.speak("You do not have a list");
 	}
 
 	this.emit(":responseReady");
@@ -275,43 +172,25 @@ function GetList(data, listName) {
 	}
 }
 
-function AddList(data, listName) {
-	console.log("In AddList");
-	console.log(data.attributes);
-
-	if (DoesListExist(data, listName)) {
-		console.log("List exist");
-		return false;
-
-	} else {
-		console.log("List not exist");
-		data.attributes.toBringList[listName] = [];
-		return true;
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////
 // Direction handler
 //////////////////////////////////////////////////////////////////////////
 function CancelIntent() {
-	this.handler.state = "";
-	this.response.speak('Bye');
+	this.response.speak('See you later');
 	this.emit(':responseReady');
 }
 
 function HelpIntent() {
-	this.response.speak('Help');
+	this.response.speak('Before you leave the house, you san say I am off or I am leaving to me and I will prepare you before you go. If you want to add item to your to bring list, say add item. If you want to remove item to your to bring list, say remove item, or you can empty the whole list by saying empty list.').listen();
 	this.emit(':responseReady');
 }
 
 function StopIntent() {
-	this.handler.state = "";
-	this.response.speak('Stop');
+	this.response.speak('See you later');
 	this.emit(':responseReady');
 }
 
 function SessionEndedRequest() {
-	this.handler.state = "";
 	console.log('session ended!');
 	this.emit(':saveState', true);
 }
@@ -330,7 +209,7 @@ function GetNews(isGetNews) {
 		}
 
 		newsapi.v2.topHeadlines({
-			sources: 'bbc-news,cnn', 
+			sources: 'bbc-news,cnn',
 			language: 'en',
 			pageSize: 3
 		}).then(data => {
@@ -376,8 +255,8 @@ function GetToBringItemSpeech(data) {
 			"You can add item that you want to bring by saying add to bring item. ";
 	} else {
 		var itemsList;
-		for (i = 0; i < alwaysList.length; i++) {
-			itemsList += cars[i] + ",";
+		for (let item of alwaysList) {
+			itemsList += item + ",";
 		}
 
 		console.log(itemsList);
@@ -615,6 +494,6 @@ function SetSlotValue(data, slotName, value) {
 exports.handler = function (event, context, callback) {
 	var alexa = Alexa.handler(event, context);
 	alexa.dynamoDBTableName = 'AdventureAssistant';
-	alexa.registerHandlers(handlers, AddItemHandlers);
+	alexa.registerHandlers(handlers);
 	alexa.execute();
 };
