@@ -1,11 +1,32 @@
 import * as Alexa from 'ask-sdk';
+import { DynamoDB } from 'aws-sdk';
+
+const ToBringItemLists = "ToBringItemLists";
+const Always = "Always";
 
 const LaunchRequestHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
 		return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
 	},
-	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'Welcome to the Alexa Skills Kit, you can say hello!';
+	async handle(handlerInput: Alexa.HandlerInput) {
+		var speechText = "";
+		
+		var result = await handlerInput.attributesManager.getPersistentAttributes();
+		
+		if(Object.keys(result).length === 0){
+			speechText += 'Welcome to Adventure Assistant!';
+
+			var initialUserAttributes = {
+				ToBringItemLists: {
+					Always: []
+				}
+			}
+
+			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
+			handlerInput.attributesManager.savePersistentAttributes();
+		} else {
+			speechText += "Welcome back, how can I help you today?"
+		}
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -21,11 +42,11 @@ const GoingOutIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'GoingOutIntent';
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'Hello World!';
+		const speechText = 'Have fun';
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withSimpleCard('Hello World', speechText)
+			.withSimpleCard('Have fun', speechText)
 			.getResponse();
 	}
 };
@@ -72,10 +93,23 @@ const SessionEndedRequestHandler = {
 	}
 };
 
+// Lambda init
+var persistenceAdapterConfig = {
+	tableName: "AdventureAssistant",
+	partitionKeyName: "userId",
+	attributesName: undefined,
+	createTable: true,
+	dynamoDBClient: undefined,
+	partitionKeyGenerator: undefined
+};
+
+var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
+
 exports.handler = Alexa.SkillBuilders.custom()
 	.addRequestHandlers(LaunchRequestHandler,
 		GoingOutIntentHandler,
 		HelpIntentHandler,
 		CancelAndStopIntentHandler,
 		SessionEndedRequestHandler)
+	.withPersistenceAdapter(persistenceAdapter)
 	.lambda();
