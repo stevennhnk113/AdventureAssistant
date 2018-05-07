@@ -2,7 +2,7 @@
   "name": "adventureassistant",
   "version": "1.0.0",
   "description": "Alexa-Skill",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,5 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "ask-sdk": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^10.0.3",
+    "typescript": "^2.8.3"
   }
 }

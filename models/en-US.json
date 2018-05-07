@@ -16,46 +16,65 @@
           "samples": []
         },
         {
-          "name": "OpenAList",
-          "slots": [
-            {
-              "name": "ListType",
-              "type": "ListType",
-              "samples": [
-                "open {ListType} list",
-                "show me my {ListType} list",
-                "show me {ListType} list",
-                "open my {ListType} list",
-                "how about {ListType} list",
-                "{ListType} list"
-              ]
-            },
-            {
-              "name": "CreateNewListConfirmation",
-              "type": "YesNoType"
-            }
-          ],
-          "samples": [
-            "tell me {ListType} list",
-            "tell me my {ListType} list",
-            "open my list",
-            "show me my list",
-            "I want to see {ListType} list",
-            "I want to see my {ListType} list",
-            "show me a list",
-            "open a list",
-            "what is in my {ListType} list",
-            "show me {ListType} list",
-            "open {ListType} list",
-            "open my {ListType} list"
-          ]
-        },
-        {
           "name": "GoingOutIntent",
           "samples": [
+            "that I am leaving",
             "I am out",
             "I am off",
             "I am leaving"
+          ]
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": []
+        },
+        {
+          "name": "OpenListIntent",
+          "samples": [
+            "what is in my list",
+            "show me my list",
+            "show me a list",
+            "open my list",
+            "open a list"
+          ]
+        },
+        {
+          "name": "EmptyListIntent",
+          "samples": [
+            "redo my list",
+            "delete items in my list",
+            "delete stuffs in my list",
+            "empty my list",
+            "empty a list"
+          ]
+        },
+        {
+          "name": "AddItemToListIntent",
+          "slots": [
+            {
+              "name": "ItemType",
+              "type": "ItemType",
+              "samples": [
+                "{ItemType} please",
+                "let add {ItemType}",
+                "how about {ItemType}",
+                "add {ItemType}",
+                "{ItemType}"
+              ]
+            }
+          ],
+          "samples": [
+            "add item",
+            "remind me to bring {ItemType} when I go out",
+            "remind me to bring {ItemType}",
+            "include {ItemType} in my list",
+            "add a {ItemType} to my list",
+            "add {ItemType} to my list",
+            "add item to a list"
           ]
         }
       ],
@@ -64,102 +83,67 @@
           "values": [
             {
               "name": {
-                "value": "bar"
+                "value": "rain jacket"
               }
             },
             {
               "name": {
-                "value": "home"
+                "value": "lunch"
               }
             },
             {
               "name": {
-                "value": "school"
+                "value": "credit card"
               }
             },
             {
               "name": {
-                "value": "work"
+                "value": "debit card"
               }
             },
             {
               "name": {
-                "value": "sleeping"
+                "value": "card"
               }
             },
             {
               "name": {
-                "value": "eating"
+                "value": "driver license"
               }
             },
             {
               "name": {
-                "value": "dating"
+                "value": "wallet"
               }
             },
             {
               "name": {
-                "value": "working"
-              }
-            },
-            {
-              "name": {
-                "value": "working out"
-              }
-            },
-            {
-              "name": {
-                "value": "Hiking"
+                "value": "key"
               }
             }
           ],
-          "name": "ListType"
-        },
-        {
-          "values": [
-            {
-              "id": "FALSE",
-              "name": {
-                "value": "No",
-                "synonyms": [
-                  "Nope"
-                ]
-              }
-            },
-            {
-              "id": "TRUE",
-              "name": {
-                "value": "Yes",
-                "synonyms": [
-                  "Yep"
-                ]
-              }
-            }
-          ],
-          "name": "YesNoType"
+          "name": "ItemType"
         }
       ]
     },
     "dialog": {
       "intents": [
         {
-          "name": "OpenAList",
+          "name": "OpenListIntent",
+          "confirmationRequired": false
+        },
+        {
+          "name": "AddItemToListIntent",
           "confirmationRequired": false,
           "slots": [
             {
-              "name": "ListType",
-              "type": "ListType",
+              "name": "ItemType",
+              "type": "ItemType",
               "elicitationRequired": true,
               "confirmationRequired": false,
               "prompts": {
-                "elicitation": "Elicit.Slot.476740650415.615170334476"
+                "elicitation": "Elicit.Slot.473727993396.126395048964"
               }
-            },
-            {
-              "name": "CreateNewListConfirmation",
-              "type": "YesNoType",
-              "elicitationRequired": false,
-              "confirmationRequired": false
             }
           ]
         }
@@ -184,6 +168,48 @@
           {
             "type": "PlainText",
             "value": "What do you want to open?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.427467507914.22680869513",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "please choose a list"
+          },
+          {
+            "type": "PlainText",
+            "value": "what list do you want to see?"
+          },
+          {
+            "type": "PlainText",
+            "value": "what list should I tell you?"
+          },
+          {
+            "type": "PlainText",
+            "value": "which one do you want to open?"
+          },
+          {
+            "type": "PlainText",
+            "value": "which one?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.473727993396.126395048964",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "What should I include in your to bring list?"
+          },
+          {
+            "type": "PlainText",
+            "value": "What do you want to add?"
+          },
+          {
+            "type": "PlainText",
+            "value": "What should I add?"
           }
         ]
       }
