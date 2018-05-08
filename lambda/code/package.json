@@ -9,7 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ask-sdk": "^2.0.3"
+    "ask-sdk": "^2.0.3",
+    "newsapi": "^2.2.2",
+    "request": "^2.85.0",
+    "request-promise": "^4.2.2"
   },
   "devDependencies": {
     "@types/node": "^10.0.3",
