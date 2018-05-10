@@ -91,24 +91,34 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var speechText, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        speechText = 'Have fun';
+                        speechText = '';
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
                         if (!(serviceClientFactory != null)) return [3 /*break*/, 2];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
                     case 1:
-                        address = _a.sent();
+                        address = _b.sent();
                         console.log(address);
-                        _a.label = 2;
-                    case 2: return [2 /*return*/, handlerInput.responseBuilder
-                            .speak(speechText)
-                            .withSimpleCard('Have fun', speechText)
-                            .getResponse()];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        console.log("service clinent is null");
+                        _b.label = 3;
+                    case 3:
+                        _a = speechText;
+                        return [4 /*yield*/, GetNews(true)];
+                    case 4:
+                        speechText = _a + _b.sent();
+                        speechText += "Have fun";
+                        console.log(speechText);
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(speechText)
+                                .withSimpleCard('Have fun', speechText)
+                                .getResponse()];
                 }
             });
         });
@@ -171,6 +181,7 @@ function GetNews(isGetNews) {
                 resolve(speech);
             }
             speech = GetNewsSpeech(data);
+            resolve(speech);
         }).catch(function (error) {
             console.log(error);
             reject();
@@ -189,27 +200,26 @@ function GetNewsSpeech(newsData) {
     }
     return speech;
 }
-function GetToBringItemSpeech(data) {
-    console.log("In GetToBringItem");
-    var numberOfList = NumberOfList(data);
-    var alwaysList = GetList(data, "always");
-    if (numberOfList === 1) {
-        console.log("Just always");
-        if (alwaysList.length === 0) {
-            console.log("Empty");
-            return "You have not told me what item you would like to bring everytime you go out. " +
-                "You can add item that you want to bring by saying add to bring item. ";
-        }
-        else {
-            var itemsList;
-            for (i = 0; i < alwaysList.length; i++) {
-                itemsList += cars[i] + ",";
-            }
-            console.log(itemsList);
-            return itemsList;
-        }
-    }
-}
+// function GetToBringItemSpeech(data: Alexa.HandlerInput) {
+// 	console.log("In GetToBringItem");
+// 	var numberOfList = NumberOfList(data);
+// 	var alwaysList = GetList(data, "always");
+// 	if (numberOfList === 1) {
+// 		console.log("Just always");
+// 		if (alwaysList.length === 0) {
+// 			console.log("Empty");
+// 			return "You have not told me what item you would like to bring everytime you go out. " +
+// 				"You can add item that you want to bring by saying add to bring item. ";
+// 		} else {
+// 			var itemsList;
+// 			for (i = 0; i < alwaysList.length; i++) {
+// 				itemsList += cars[i] + ",";
+// 			}
+// 			console.log(itemsList);
+// 			return itemsList;
+// 		}
+// 	}
+// }
 function GetWeatherConditionSpeech(code) {
     var speech = "";
     switch (code) {
@@ -329,103 +339,98 @@ function GetWeatherConditionSpeech(code) {
 }
 // These are simple operation but import for maintainent
 // IF there is a change in database document field name, we only need to change at 1 location
-function DoesListExist(data, listName) {
-    console.log("In DoesListExist");
-    console.log("List name: " + listName);
-    console.log("Attributes: ");
-    console.log(data.attributes);
-    return (listName in data.attributes.toBringList);
-}
-function NumberOfList(data) {
-    console.log("In NumberOfList");
-    console.log("Num of list: " + Object.keys(data.attributes.toBringList).length);
-    return Object.keys(data.attributes.toBringList).length;
-}
-function RemoveList(data, listName) {
-    console.log("In RemoveList");
-    console.log(data.attributes);
-    if (DoesListExist(data, listName)) {
-        delete data.attributes.toBringList[listName];
-        return true;
-    }
-    else {
-        console.log("List not exist");
-        return false;
-    }
-}
-function EmptyList(data, listName) {
-    console.log("In EmptyList");
-    console.log(data.attributes);
-    if (DoesListExist(data, listName)) {
-        data.attributes.toBringList[listName] = [];
-        return true;
-    }
-    else {
-        console.log("List not exist");
-        return false;
-    }
-}
-function AddItemToList(data, listName, itemName) {
-    console.log("In AddItemToList");
-    console.log(data.attributes);
-    if (!DoesListExist(data, listName)) {
-        console.log("List not exist");
-        return -1;
-    }
-    console.log("List exist");
-    if (data.attributes.toBringList[listName].includes(itemName)) {
-        console.log("Item exist");
-        return 0;
-    }
-    else {
-        data.attributes.toBringList[listName].push(itemName);
-        console.log("Item added");
-        return 1;
-    }
-}
-function RemoveItemFromList(data, listName, itemName) {
-    console.log("In AddItemToList");
-    console.log(data.attributes);
-    if (!DoesListExist(data, listName)) {
-        console.log("List not exist");
-        return -1;
-    }
-    if (data.attributes.toBringList[listName].includes(itemName)) {
-        return 0;
-    }
-    else {
-        var index = data.attributes.toBringList[listName].indexOf(itemName);
-        data.attributes.toBringList[listName].slice(index, 1);
-        return 1;
-    }
-}
-function IsSlotValueFilled(data, slotName) {
-    console.log("In IsSlotValueFilled");
-    console.log(data.event.request.intent.slots);
-    console.log(slotName);
-    return data.event.request.intent.slots[slotName].value;
-    // For testing purpose
-    // if (data.event.request.intent.slots[slotName].value) {
-    // 	console.log("Slot is filled");
-    // 	return true;
-    // } else {
-    // 	console.log("Slot is not filled");
-    // 	return false;
-    // }
-}
-function GetSlotValue(data, slotName) {
-    console.log("In GetSlotValue");
-    if (IsSlotValueFilled(data, slotName)) {
-        return data.event.request.intent.slots[slotName].value;
-    }
-    else {
-        return null;
-    }
-}
-function SetSlotValue(data, slotName, value) {
-    console.log("In SetSlotValue");
-    data.event.request.intent.slots[slotName].value = value;
-}
+// function DoesListExist(data: Alexa.HandlerInput, listName: [any]) {
+// 	console.log("In DoesListExist");
+// 	console.log("List name: " + listName);
+// 	console.log("Attributes: ");
+// 	console.log(data.attributes);
+// 	return (listName in data.attributes.toBringList);
+// }
+// function NumberOfList(data: Alexa.HandlerInput) {
+// 	console.log("In NumberOfList");
+// 	console.log("Num of list: " + Object.keys(data.attributes.toBringList).length);
+// 	return Object.keys(data.attributes.toBringList).length;
+// }
+// function RemoveList(data: Alexa.HandlerInput, listName) {
+// 	console.log("In RemoveList");
+// 	console.log(data.attributes);
+// 	if (DoesListExist(data, listName)) {
+// 		delete data.attributes.toBringList[listName];
+// 		return true;
+// 	} else {
+// 		console.log("List not exist");
+// 		return false;
+// 	}
+// }
+// function EmptyList(data: Alexa.HandlerInput, listName) {
+// 	console.log("In EmptyList");
+// 	console.log(data.attributes);
+// 	if (DoesListExist(data, listName)) {
+// 		data.attributes.toBringList[listName] = [];
+// 		return true;
+// 	} else {
+// 		console.log("List not exist");
+// 		return false;
+// 	}
+// }
+// function AddItemToList(data: Alexa.HandlerInput, listName, itemName) {
+// 	console.log("In AddItemToList");
+// 	console.log(data.attributes);
+// 	if (!DoesListExist(data, listName)) {
+// 		console.log("List not exist");
+// 		return -1;
+// 	}
+// 	console.log("List exist");
+// 	if (data.attributes.toBringList[listName].includes(itemName)) {
+// 		console.log("Item exist");
+// 		return 0;
+// 	} else {
+// 		data.attributes.toBringList[listName].push(itemName);
+// 		console.log("Item added");
+// 		return 1;
+// 	}
+// }
+// function RemoveItemFromList(data: Alexa.HandlerInput, listName, itemName) {
+// 	console.log("In AddItemToList");
+// 	console.log(data.attributes);
+// 	if (!DoesListExist(data, listName)) {
+// 		console.log("List not exist");
+// 		return -1;
+// 	}
+// 	if (data.attributes.toBringList[listName].includes(itemName)) {
+// 		return 0;
+// 	} else {
+// 		const index = data.attributes.toBringList[listName].indexOf(itemName);
+// 		data.attributes.toBringList[listName].slice(index, 1);
+// 		return 1;
+// 	}
+// }
+// function IsSlotValueFilled(data: Alexa.HandlerInput, slotName) {
+// 	console.log("In IsSlotValueFilled");
+// 	console.log(data.event.request.intent.slots);
+// 	console.log(slotName);
+// 	return data.event.request.intent.slots[slotName].value;
+// 	// For testing purpose
+// 	// if (data.event.request.intent.slots[slotName].value) {
+// 	// 	console.log("Slot is filled");
+// 	// 	return true;
+// 	// } else {
+// 	// 	console.log("Slot is not filled");
+// 	// 	return false;
+// 	// }
+// }
+// function GetSlotValue(data: Alexa.HandlerInput, slotName) {
+// 	console.log("In GetSlotValue");
+// 	if (IsSlotValueFilled(data, slotName)) {
+// 		return data.event.request.intent.slots[slotName].value;
+// 	} else {
+// 		return null;
+// 	}
+// }
+// function SetSlotValue(data: Alexa.HandlerInput, slotName, value) {
+// 	console.log("In SetSlotValue");
+// 	data.event.request.intent.slots[slotName].value = value;
+// }
 // Class
 // Lambda init
 var persistenceAdapterConfig = {
@@ -437,8 +442,9 @@ var persistenceAdapterConfig = {
     partitionKeyGenerator: undefined
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
-exports.handler = Alexa.SkillBuilders.custom()
+exports.handler = Alexa.SkillBuilders.standard()
     .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
-    .withPersistenceAdapter(persistenceAdapter)
+    .withTableName("AdventureAssistant")
+    .withAutoCreateTable(true)
     .lambda();
 //# sourceMappingURL=index.js.map
