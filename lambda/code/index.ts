@@ -1,9 +1,13 @@
 import * as Alexa from 'ask-sdk';
 import { DynamoDB, DeviceFarm } from 'aws-sdk';
 import { services } from "ask-sdk-model";
+import { resolve } from 'dns';
+import { rejects } from 'assert';
 
 const NewsAPI = require('newsapi');
 const newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
+
+var request = require('request-promise');
 
 const ToBringItemLists = "ToBringItemLists";
 const Always = "Always";
@@ -47,6 +51,7 @@ const GoingOutIntentHandler = {
 	},
 	async handle(handlerInput: Alexa.HandlerInput) {
 		var speechText = '';
+		var weatherSpeech = '';
 
 		// Get address
 		const { requestEnvelope, serviceClientFactory } = handlerInput;
@@ -54,13 +59,16 @@ const GoingOutIntentHandler = {
 		if(serviceClientFactory != null){
 			const deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
 			const address = await deviceAddressServiceClient.getFullAddress(deviceId);
-			console.log(address);
-		} else 
-		{
+			
+			if(address.postalCode != undefined) {
+				weatherSpeech += await GetWeather(address.postalCode);
+			}
+		} else {
 			console.log("service clinent is null");
 		}
 
 		speechText += await GetNews(true);
+		speechText += weatherSpeech;
 
 		speechText += "Have fun";
 
@@ -147,6 +155,25 @@ function GetNews(isGetNews: boolean) : Promise<string> {
 
 		console.log("End GetNews");
 	});
+}
+
+function GetWeather(postalCode: string) : Promise<string>{
+	return new Promise((resolve, reject) => {
+		var speech = '';
+
+		request({
+			"method": "GET",
+			"uri": "https://api.openweathermap.org/data/2.5/weather?zip=" + postalCode.substring(0, 5) + ",us&appid=01d76e09769a4a3911a32ff79aae2e66",
+			"json": true,
+		})
+		.then((data:any) =>{
+			speech += GetWeatherConditionSpeech(data.weather[0].id);
+			resolve(speech);
+		})
+		.catch((error: any) => {
+			reject();
+		})
+	})
 }
 
 //////////////////////////////////////////////////////////////////////////

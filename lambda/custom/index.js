@@ -45,6 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Alexa = __importStar(require("ask-sdk"));
 var NewsAPI = require('newsapi');
 var newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
+var request = require('request-promise');
 var ToBringItemLists = "ToBringItemLists";
 var Always = "Always";
 var LaunchRequestHandler = {
@@ -91,28 +92,35 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var speechText, weatherSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         speechText = '';
+                        weatherSpeech = '';
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 2];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 4];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
                     case 1:
-                        address = _b.sent();
-                        console.log(address);
-                        return [3 /*break*/, 3];
+                        address = _c.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 3];
+                        _a = weatherSpeech;
+                        return [4 /*yield*/, GetWeather(address.postalCode)];
                     case 2:
-                        console.log("service clinent is null");
-                        _b.label = 3;
-                    case 3:
-                        _a = speechText;
-                        return [4 /*yield*/, GetNews(true)];
+                        weatherSpeech = _a + _c.sent();
+                        _c.label = 3;
+                    case 3: return [3 /*break*/, 5];
                     case 4:
-                        speechText = _a + _b.sent();
+                        console.log("service clinent is null");
+                        _c.label = 5;
+                    case 5:
+                        _b = speechText;
+                        return [4 /*yield*/, GetNews(true)];
+                    case 6:
+                        speechText = _b + _c.sent();
+                        speechText += weatherSpeech;
                         speechText += "Have fun";
                         console.log(speechText);
                         return [2 /*return*/, handlerInput.responseBuilder
@@ -187,6 +195,23 @@ function GetNews(isGetNews) {
             reject();
         });
         console.log("End GetNews");
+    });
+}
+function GetWeather(postalCode) {
+    return new Promise(function (resolve, reject) {
+        var speech = '';
+        request({
+            "method": "GET",
+            "uri": "https://api.openweathermap.org/data/2.5/weather?zip=" + postalCode.substring(0, 5) + ",us&appid=01d76e09769a4a3911a32ff79aae2e66",
+            "json": true,
+        })
+            .then(function (data) {
+            speech += GetWeatherConditionSpeech(data.weather[0].id);
+            resolve(speech);
+        })
+            .catch(function (error) {
+            reject();
+        });
     });
 }
 //////////////////////////////////////////////////////////////////////////
