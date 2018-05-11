@@ -64,11 +64,7 @@ var LaunchRequestHandler = {
                         result = _a.sent();
                         if (Object.keys(result).length === 0) {
                             speechText += 'Welcome to Adventure Assistant!';
-                            initialUserAttributes = {
-                                ToBringItemLists: {
-                                    Always: []
-                                }
-                            };
+                            initialUserAttributes = new User();
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -92,12 +88,13 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b;
+            var speechText, weatherSpeech, newsSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         speechText = '';
                         weatherSpeech = '';
+                        newsSpeech = '';
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
                         if (!(serviceClientFactory != null)) return [3 /*break*/, 4];
@@ -116,10 +113,13 @@ var GoingOutIntentHandler = {
                         console.log("service clinent is null");
                         _c.label = 5;
                     case 5:
-                        _b = speechText;
+                        // Get news
+                        _b = newsSpeech;
                         return [4 /*yield*/, GetNews(true)];
                     case 6:
-                        speechText = _b + _c.sent();
+                        // Get news
+                        newsSpeech = _b + _c.sent();
+                        speechText += newsSpeech;
                         speechText += weatherSpeech;
                         speechText += "Have fun";
                         console.log(speechText);
@@ -197,6 +197,9 @@ function GetNews(isGetNews) {
         console.log("End GetNews");
     });
 }
+//////////////////////////////////////////////////////////////////////////
+// Weather Helper
+//////////////////////////////////////////////////////////////////////////
 function GetWeather(postalCode) {
     return new Promise(function (resolve, reject) {
         var speech = '';
@@ -214,37 +217,6 @@ function GetWeather(postalCode) {
         });
     });
 }
-//////////////////////////////////////////////////////////////////////////
-// SPEECH Helper
-//////////////////////////////////////////////////////////////////////////
-function GetNewsSpeech(newsData) {
-    var speech = "";
-    for (var _i = 0, _a = newsData.articles; _i < _a.length; _i++) {
-        var news = _a[_i];
-        speech += "From " + news.source.name + ": " + news.description + " ";
-    }
-    return speech;
-}
-// function GetToBringItemSpeech(data: Alexa.HandlerInput) {
-// 	console.log("In GetToBringItem");
-// 	var numberOfList = NumberOfList(data);
-// 	var alwaysList = GetList(data, "always");
-// 	if (numberOfList === 1) {
-// 		console.log("Just always");
-// 		if (alwaysList.length === 0) {
-// 			console.log("Empty");
-// 			return "You have not told me what item you would like to bring everytime you go out. " +
-// 				"You can add item that you want to bring by saying add to bring item. ";
-// 		} else {
-// 			var itemsList;
-// 			for (i = 0; i < alwaysList.length; i++) {
-// 				itemsList += cars[i] + ",";
-// 			}
-// 			console.log(itemsList);
-// 			return itemsList;
-// 		}
-// 	}
-// }
 function GetWeatherConditionSpeech(code) {
     var speech = "";
     switch (code) {
@@ -362,6 +334,44 @@ function GetWeatherConditionSpeech(code) {
     }
     return speech;
 }
+//////////////////////////////////////////////////////////////////////////
+// SPEECH Helper
+//////////////////////////////////////////////////////////////////////////
+function GetNewsSpeech(newsData) {
+    var speech = "";
+    for (var _i = 0, _a = newsData.articles; _i < _a.length; _i++) {
+        var news = _a[_i];
+        speech += "From " + news.source.name + ": " + news.description + " ";
+    }
+    return speech;
+}
+//////////////////////////////////////////////////////////////////////////
+// Bring Item Helper
+//////////////////////////////////////////////////////////////////////////
+function GetToBringItemSpeech(data) {
+    console.log("In GetToBringItem");
+    var numberOfList = data.NumberOfList;
+    var alwaysList = GetList(data, "always");
+    if (numberOfList === 1) {
+        console.log("Just always");
+        if (alwaysList.Items.length === 0) {
+            console.log("Empty");
+            return "You have not told me what item you would like to bring everytime you go out. " +
+                "You can add item that you want to bring by saying add to bring item. ";
+        }
+        else {
+            var itemsList = '';
+            for (var i = 0; i < alwaysList.Items.length; i++) {
+                itemsList += alwaysList.Items[i] + ",";
+            }
+            console.log(itemsList);
+            return itemsList;
+        }
+    }
+}
+function GetList(data, listName) {
+    return data.ToBringItemLists.get(listName);
+}
 // These are simple operation but import for maintainent
 // IF there is a change in database document field name, we only need to change at 1 location
 // function DoesListExist(data: Alexa.HandlerInput, listName: [any]) {
@@ -371,9 +381,9 @@ function GetWeatherConditionSpeech(code) {
 // 	console.log(data.attributes);
 // 	return (listName in data.attributes.toBringList);
 // }
-// function NumberOfList(data: Alexa.HandlerInput) {
+// function NumberOfList(data: Alexa.HandlerInput) : number {
 // 	console.log("In NumberOfList");
-// 	console.log("Num of list: " + Object.keys(data.attributes.toBringList).length);
+// 	console.log("Num of list: " + Object.keys(data.attributesManager. .toBringList).length);
 // 	return Object.keys(data.attributes.toBringList).length;
 // }
 // function RemoveList(data: Alexa.HandlerInput, listName) {
@@ -457,14 +467,24 @@ function GetWeatherConditionSpeech(code) {
 // 	data.event.request.intent.slots[slotName].value = value;
 // }
 // Class
+var User = /** @class */ (function () {
+    function User() {
+        this.ToBringItemLists = null;
+    }
+    return User;
+}());
+var ItemList = /** @class */ (function () {
+    function ItemList() {
+        this.Name = null;
+        this.Items = null;
+    }
+    return ItemList;
+}());
 // Lambda init
 var persistenceAdapterConfig = {
     tableName: "AdventureAssistant",
     partitionKeyName: "userId",
-    attributesName: undefined,
     createTable: true,
-    dynamoDBClient: undefined,
-    partitionKeyGenerator: undefined
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
@@ -472,4 +492,3 @@ exports.handler = Alexa.SkillBuilders.standard()
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();
-//# sourceMappingURL=index.js.map
