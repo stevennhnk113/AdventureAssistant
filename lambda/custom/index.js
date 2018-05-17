@@ -54,7 +54,7 @@ var LaunchRequestHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, result, initialUserAttributes;
+            var speechText, result, newUser, initialUserAttributes;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -64,7 +64,11 @@ var LaunchRequestHandler = {
                         result = _a.sent();
                         if (Object.keys(result).length === 0) {
                             speechText += 'Welcome to Adventure Assistant!';
-                            initialUserAttributes = new User();
+                            newUser = new User();
+                            newUser.InitializeUser();
+                            initialUserAttributes = newUser;
+                            console.log(JSON.stringify(newUser));
+                            console.log(JSON.stringify(newUser.ToBringItemLists));
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -350,7 +354,7 @@ function GetNewsSpeech(newsData) {
 //////////////////////////////////////////////////////////////////////////
 function GetToBringItemSpeech(data) {
     console.log("In GetToBringItem");
-    var numberOfList = data.NumberOfList;
+    var numberOfList = data.GetNumberOfList();
     var alwaysList = GetList(data, "always");
     if (numberOfList === 1) {
         console.log("Just always");
@@ -471,6 +475,29 @@ var User = /** @class */ (function () {
     function User() {
         this.ToBringItemLists = null;
     }
+    User.prototype.InitializeUser = function () {
+        this.ToBringItemLists = new Map();
+        this.AddList(Always);
+    };
+    User.prototype.AddList = function (listName) {
+        this.ToBringItemLists.set(listName, new ItemList());
+        this.ToBringItemLists.get(listName).Items = new Array();
+        this.ToBringItemLists.get(listName).Items.push("waht");
+        this.ToBringItemLists.get(listName).Name = listName;
+    };
+    User.prototype.GetNumberOfList = function () {
+        if (ToBringItemLists == null)
+            return -1;
+        else
+            return ToBringItemLists.length;
+    };
+    User.prototype.GetJson = function () {
+        var temp = Object.assign({}, this);
+        temp.ToBringItemLists.forEach(function (v, k, m) {
+            m.set(k, v);
+        });
+        return temp;
+    };
     return User;
 }());
 var ItemList = /** @class */ (function () {
@@ -478,6 +505,9 @@ var ItemList = /** @class */ (function () {
         this.Name = null;
         this.Items = null;
     }
+    ItemList.prototype.GetJson = function () {
+        return Object.assign({}, this);
+    };
     return ItemList;
 }());
 // Lambda init

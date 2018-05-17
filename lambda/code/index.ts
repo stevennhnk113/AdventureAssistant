@@ -24,7 +24,12 @@ const LaunchRequestHandler = {
 		if(Object.keys(result).length === 0){
 			speechText += 'Welcome to Adventure Assistant!';
 
-			var initialUserAttributes = new User();
+			let newUser = new User();
+			newUser.InitializeUser();
+			var initialUserAttributes = newUser;
+
+			console.log(JSON.stringify(newUser));
+			console.log(JSON.stringify(newUser.ToBringItemLists));
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
@@ -318,7 +323,7 @@ function GetNewsSpeech(newsData: any) {
 function GetToBringItemSpeech(data: User) {
 	console.log("In GetToBringItem");
 
-	var numberOfList = data.NumberOfList;
+	var numberOfList = data.GetNumberOfList();
 	var alwaysList = GetList(data, "always");
 
 	if (numberOfList === 1) {
@@ -460,11 +465,38 @@ function GetList(data: User, listName: string) : ItemList {
 // Class
 
 class User {
+	ToBringItemLists: Map<string, ItemList>;
+
 	constructor() {
 		this.ToBringItemLists = null;
 	}
-	ToBringItemLists: Map<string, ItemList>;
-	NumberOfList: number;
+
+	InitializeUser() {
+		this.ToBringItemLists = new Map<string, ItemList>();
+		this.AddList(Always);
+	}
+
+	AddList(listName: string) {
+		this.ToBringItemLists.set(listName, new ItemList());
+		this.ToBringItemLists.get(listName).Items = new Array<string>();
+		this.ToBringItemLists.get(listName).Items.push("waht");
+		this.ToBringItemLists.get(listName).Name = listName
+	}
+
+	GetNumberOfList() : number {
+		if(ToBringItemLists == null) return -1;
+		else return ToBringItemLists.length;
+	}
+
+	GetJson() : any {
+		var temp = Object.assign({}, this);
+
+		temp.ToBringItemLists.forEach((v, k, m) => {
+			m.set(k, v);
+		})
+
+		return temp;
+	}
 }
 
 class ItemList {
@@ -474,6 +506,10 @@ class ItemList {
 	}
 	Name: string;
 	Items: Array<string>;
+
+	GetJson() : any {
+		return Object.assign({}, this); 
+	}
 }
 
 // Lambda init
