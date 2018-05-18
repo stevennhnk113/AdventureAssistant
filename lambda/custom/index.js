@@ -66,9 +66,9 @@ var LaunchRequestHandler = {
                             speechText += 'Welcome to Adventure Assistant!';
                             newUser = new User();
                             newUser.InitializeUser();
-                            initialUserAttributes = newUser;
-                            console.log(JSON.stringify(newUser));
-                            console.log(JSON.stringify(newUser.ToBringItemLists));
+                            initialUserAttributes = newUser.GetJson();
+                            console.log(newUser);
+                            console.log(initialUserAttributes);
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -483,6 +483,7 @@ var User = /** @class */ (function () {
         this.ToBringItemLists.set(listName, new ItemList());
         this.ToBringItemLists.get(listName).Items = new Array();
         this.ToBringItemLists.get(listName).Items.push("waht");
+        this.ToBringItemLists.get(listName).Items.push("second");
         this.ToBringItemLists.get(listName).Name = listName;
     };
     User.prototype.GetNumberOfList = function () {
@@ -492,10 +493,13 @@ var User = /** @class */ (function () {
             return ToBringItemLists.length;
     };
     User.prototype.GetJson = function () {
-        var temp = Object.assign({}, this);
-        temp.ToBringItemLists.forEach(function (v, k, m) {
-            m.set(k, v);
-        });
+        var temp = {
+            ToBringItemLists: {}
+        };
+        //this.ToBringItemLists.
+        // this.ToBringItemLists.forEach((value, key, map) => {
+        // 	temp.ToBringItemLists[key] = value.GetJson();
+        // })
         return temp;
     };
     return User;
@@ -506,7 +510,11 @@ var ItemList = /** @class */ (function () {
         this.Items = null;
     }
     ItemList.prototype.GetJson = function () {
-        return Object.assign({}, this);
+        ;
+        return {
+            Name: this.Name,
+            Items: this.Items.toString()
+        };
     };
     return ItemList;
 }());

@@ -3,6 +3,7 @@ import { DynamoDB, DeviceFarm } from 'aws-sdk';
 import { services } from "ask-sdk-model";
 import { resolve } from 'dns';
 import { rejects } from 'assert';
+import { stringify } from 'querystring';
 
 const NewsAPI = require('newsapi');
 const newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
@@ -26,10 +27,9 @@ const LaunchRequestHandler = {
 
 			let newUser = new User();
 			newUser.InitializeUser();
-			var initialUserAttributes = newUser;
-
-			console.log(JSON.stringify(newUser));
-			console.log(JSON.stringify(newUser.ToBringItemLists));
+			let initialUserAttributes = newUser.GetJson();
+			console.log(newUser);
+			console.log(initialUserAttributes);
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
@@ -480,6 +480,7 @@ class User {
 		this.ToBringItemLists.set(listName, new ItemList());
 		this.ToBringItemLists.get(listName).Items = new Array<string>();
 		this.ToBringItemLists.get(listName).Items.push("waht");
+		this.ToBringItemLists.get(listName).Items.push("second");
 		this.ToBringItemLists.get(listName).Name = listName
 	}
 
@@ -489,11 +490,15 @@ class User {
 	}
 
 	GetJson() : any {
-		var temp = Object.assign({}, this);
+		var temp = {
+			ToBringItemLists: {}
+		}
 
-		temp.ToBringItemLists.forEach((v, k, m) => {
-			m.set(k, v);
-		})
+		//this.ToBringItemLists.
+
+		// this.ToBringItemLists.forEach((value, key, map) => {
+		// 	temp.ToBringItemLists[key] = value.GetJson();
+		// })
 
 		return temp;
 	}
@@ -507,8 +512,11 @@ class ItemList {
 	Name: string;
 	Items: Array<string>;
 
-	GetJson() : any {
-		return Object.assign({}, this); 
+	GetJson() : any {;
+		return {
+			Name: this.Name,
+			Items: this.Items.toString()
+		}
 	}
 }
 
