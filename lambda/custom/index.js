@@ -494,12 +494,11 @@ var User = /** @class */ (function () {
     };
     User.prototype.GetJson = function () {
         var temp = {
-            ToBringItemLists: {}
+            ToBringItemLists: Object.create(null)
         };
-        //this.ToBringItemLists.
-        // this.ToBringItemLists.forEach((value, key, map) => {
-        // 	temp.ToBringItemLists[key] = value.GetJson();
-        // })
+        this.ToBringItemLists.forEach(function (value, key, map) {
+            temp.ToBringItemLists[key] = value.GetJson();
+        });
         return temp;
     };
     return User;

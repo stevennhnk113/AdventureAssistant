@@ -491,14 +491,12 @@ class User {
 
 	GetJson() : any {
 		var temp = {
-			ToBringItemLists: {}
+			ToBringItemLists: Object.create(null)
 		}
 
-		//this.ToBringItemLists.
-
-		// this.ToBringItemLists.forEach((value, key, map) => {
-		// 	temp.ToBringItemLists[key] = value.GetJson();
-		// })
+		this.ToBringItemLists.forEach((value, key, map) => {
+			temp.ToBringItemLists[key] = value.GetJson();
+		})
 
 		return temp;
 	}
