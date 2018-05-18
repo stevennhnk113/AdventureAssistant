@@ -28,8 +28,6 @@ const LaunchRequestHandler = {
 			let newUser = new User();
 			newUser.InitializeUser();
 			let initialUserAttributes = newUser.GetJson();
-			console.log(newUser);
-			console.log(initialUserAttributes);
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
@@ -51,11 +49,12 @@ const GoingOutIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'GoingOutIntent';
 	},
 	async handle(handlerInput: Alexa.HandlerInput) {
-		var speechText = '';
-		var weatherSpeech = '';
-		var newsSpeech = '';
+		let speechText = '';
+		let weatherSpeech = '';
+		let newsSpeech = '';
+		let toBringItemSpeech = '';
 
-		// Get address
+		// Get Weather
 		const { requestEnvelope, serviceClientFactory } = handlerInput;
 		const { deviceId } = requestEnvelope.context.System.device;
 		if(serviceClientFactory != null){
@@ -72,8 +71,13 @@ const GoingOutIntentHandler = {
 		// Get news
 		newsSpeech += await GetNews(true);
 
+		// Get to bring item
+		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
+		toBringItemSpeech += GetToBringItemSpeech(user);
+
 		speechText += newsSpeech;
 		speechText += weatherSpeech;
+		speechText += toBringItemSpeech;
 
 		speechText += "Have fun";
 
@@ -328,15 +332,15 @@ function GetToBringItemSpeech(data: User) {
 
 	if (numberOfList === 1) {
 		console.log("Just always");
-		if (alwaysList.Items.length === 0) {
+		if (alwaysList.Items.size === 0) {
 			console.log("Empty");
 			return "You have not told me what item you would like to bring everytime you go out. " +
 				"You can add item that you want to bring by saying add to bring item. ";
 		} else {
 			var itemsList = '';
-			for (let i = 0; i < alwaysList.Items.length; i++) {
-				itemsList += alwaysList.Items[i] + ",";
-			}
+			alwaysList.Items.forEach((value, value2, set) => {
+				itemsList += value + ",";
+			})
 
 			console.log(itemsList);
 
@@ -467,8 +471,18 @@ function GetList(data: User, listName: string) : ItemList {
 class User {
 	ToBringItemLists: Map<string, ItemList>;
 
-	constructor() {
-		this.ToBringItemLists = null;
+	constructor()
+	constructor(data: any)
+	constructor(data?: any) {
+		if(data == null) {
+			this.ToBringItemLists = null;
+		} else {
+			this.ToBringItemLists = new Map<string, ItemList>();
+
+			Object.keys(data.ToBringItemLists).forEach((key) => {
+				this.ToBringItemLists.set(key, new ItemList(data.ToBringItemLists[key]));
+			})
+		}
 	}
 
 	InitializeUser() {
@@ -476,12 +490,40 @@ class User {
 		this.AddList(Always);
 	}
 
-	AddList(listName: string) {
+	AddList(listName: string) : void {
 		this.ToBringItemLists.set(listName, new ItemList());
-		this.ToBringItemLists.get(listName).Items = new Array<string>();
-		this.ToBringItemLists.get(listName).Items.push("waht");
-		this.ToBringItemLists.get(listName).Items.push("second");
+		this.ToBringItemLists.get(listName).Items = new Set<string>();
 		this.ToBringItemLists.get(listName).Name = listName
+	}
+
+	AddItemToList(listName: string, itemName: string) : boolean {
+		let list = this.ToBringItemLists.get(listName);
+
+		if(list.Items == null) {
+			list.Items = new Set<string>();
+		}
+
+		if(list.Items.has(itemName)) {
+			return false;
+		} else {
+			list.Items.add(itemName);
+			return true;
+		}
+	}
+
+	RemoveItemFromList(listName: string, itemName: string) : boolean {
+		let list = this.ToBringItemLists.get(listName);
+
+		if(list.Items == null) {
+			return false;
+		}
+
+		if(list.Items.has(itemName)) {
+			list.Items.delete(itemName);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	GetNumberOfList() : number {
@@ -503,12 +545,19 @@ class User {
 }
 
 class ItemList {
-	constructor() {
-		this.Name = null;
-		this.Items = null;
+	constructor()
+	constructor(data: ItemList)
+	constructor(data?: ItemList) {
+		if(data == null) {
+			this.Name = null;
+			this.Items = null;
+		} else {
+			this.Name = data.Name;
+			this.Items = data.Items;
+		}
 	}
 	Name: string;
-	Items: Array<string>;
+	Items: Set<string>;
 
 	GetJson() : any {;
 		return {

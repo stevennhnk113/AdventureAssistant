@@ -67,8 +67,6 @@ var LaunchRequestHandler = {
                             newUser = new User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
-                            console.log(newUser);
-                            console.log(initialUserAttributes);
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -92,39 +90,46 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b, user, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         speechText = '';
                         weatherSpeech = '';
                         newsSpeech = '';
+                        toBringItemSpeech = '';
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
                         if (!(serviceClientFactory != null)) return [3 /*break*/, 4];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
                     case 1:
-                        address = _c.sent();
+                        address = _d.sent();
                         if (!(address.postalCode != undefined)) return [3 /*break*/, 3];
                         _a = weatherSpeech;
                         return [4 /*yield*/, GetWeather(address.postalCode)];
                     case 2:
-                        weatherSpeech = _a + _c.sent();
-                        _c.label = 3;
+                        weatherSpeech = _a + _d.sent();
+                        _d.label = 3;
                     case 3: return [3 /*break*/, 5];
                     case 4:
                         console.log("service clinent is null");
-                        _c.label = 5;
+                        _d.label = 5;
                     case 5:
                         // Get news
                         _b = newsSpeech;
                         return [4 /*yield*/, GetNews(true)];
                     case 6:
                         // Get news
-                        newsSpeech = _b + _c.sent();
+                        newsSpeech = _b + _d.sent();
+                        _c = User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                    case 7:
+                        user = new (_c.apply(User, [void 0, _d.sent()]))();
+                        toBringItemSpeech += GetToBringItemSpeech(user);
                         speechText += newsSpeech;
                         speechText += weatherSpeech;
+                        speechText += toBringItemSpeech;
                         speechText += "Have fun";
                         console.log(speechText);
                         return [2 /*return*/, handlerInput.responseBuilder
@@ -358,16 +363,16 @@ function GetToBringItemSpeech(data) {
     var alwaysList = GetList(data, "always");
     if (numberOfList === 1) {
         console.log("Just always");
-        if (alwaysList.Items.length === 0) {
+        if (alwaysList.Items.size === 0) {
             console.log("Empty");
             return "You have not told me what item you would like to bring everytime you go out. " +
                 "You can add item that you want to bring by saying add to bring item. ";
         }
         else {
             var itemsList = '';
-            for (var i = 0; i < alwaysList.Items.length; i++) {
-                itemsList += alwaysList.Items[i] + ",";
-            }
+            alwaysList.Items.forEach(function (value, value2, set) {
+                itemsList += value + ",";
+            });
             console.log(itemsList);
             return itemsList;
         }
@@ -472,8 +477,17 @@ function GetList(data, listName) {
 // }
 // Class
 var User = /** @class */ (function () {
-    function User() {
-        this.ToBringItemLists = null;
+    function User(data) {
+        var _this = this;
+        if (data == null) {
+            this.ToBringItemLists = null;
+        }
+        else {
+            this.ToBringItemLists = new Map();
+            Object.keys(data.ToBringItemLists).forEach(function (key) {
+                _this.ToBringItemLists.set(key, new ItemList(data.ToBringItemLists[key]));
+            });
+        }
     }
     User.prototype.InitializeUser = function () {
         this.ToBringItemLists = new Map();
@@ -481,10 +495,34 @@ var User = /** @class */ (function () {
     };
     User.prototype.AddList = function (listName) {
         this.ToBringItemLists.set(listName, new ItemList());
-        this.ToBringItemLists.get(listName).Items = new Array();
-        this.ToBringItemLists.get(listName).Items.push("waht");
-        this.ToBringItemLists.get(listName).Items.push("second");
+        this.ToBringItemLists.get(listName).Items = new Set();
         this.ToBringItemLists.get(listName).Name = listName;
+    };
+    User.prototype.AddItemToList = function (listName, itemName) {
+        var list = this.ToBringItemLists.get(listName);
+        if (list.Items == null) {
+            list.Items = new Set();
+        }
+        if (list.Items.has(itemName)) {
+            return false;
+        }
+        else {
+            list.Items.add(itemName);
+            return true;
+        }
+    };
+    User.prototype.RemoveItemFromList = function (listName, itemName) {
+        var list = this.ToBringItemLists.get(listName);
+        if (list.Items == null) {
+            return false;
+        }
+        if (list.Items.has(itemName)) {
+            list.Items.delete(itemName);
+            return true;
+        }
+        else {
+            return false;
+        }
     };
     User.prototype.GetNumberOfList = function () {
         if (ToBringItemLists == null)
@@ -504,9 +542,15 @@ var User = /** @class */ (function () {
     return User;
 }());
 var ItemList = /** @class */ (function () {
-    function ItemList() {
-        this.Name = null;
-        this.Items = null;
+    function ItemList(data) {
+        if (data == null) {
+            this.Name = null;
+            this.Items = null;
+        }
+        else {
+            this.Name = data.Name;
+            this.Items = data.Items;
+        }
     }
     ItemList.prototype.GetJson = function () {
         ;
