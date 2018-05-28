@@ -47,7 +47,7 @@ var NewsAPI = require('newsapi');
 var newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
 var request = require('request-promise');
 var ToBringItemLists = "ToBringItemLists";
-var Always = "Always";
+var Always = "always";
 var LaunchRequestHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
@@ -67,6 +67,8 @@ var LaunchRequestHandler = {
                             newUser = new User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
+                            console.log(newUser);
+                            console.log(initialUserAttributes);
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -370,8 +372,12 @@ function GetToBringItemSpeech(data) {
                 "You can add item that you want to bring by saying add to bring item. ";
         }
         else {
+            console.log("Not Empty");
             var itemsList = '';
+            console.log(alwaysList.Items);
             alwaysList.Items.forEach(function (value, value2, set) {
+                console.log(value);
+                console.log(value2);
                 itemsList += value + ",";
             });
             console.log(itemsList);
@@ -498,6 +504,8 @@ var User = /** @class */ (function () {
         this.ToBringItemLists.set(listName, new ItemList());
         this.ToBringItemLists.get(listName).Items = new Set();
         this.ToBringItemLists.get(listName).Name = listName;
+        this.ToBringItemLists.get(listName).Items.add("laptop");
+        this.ToBringItemLists.get(listName).Items.add("key");
     };
     User.prototype.AddItemToList = function (listName, itemName) {
         var list = this.ToBringItemLists.get(listName);
@@ -526,10 +534,10 @@ var User = /** @class */ (function () {
         }
     };
     User.prototype.GetNumberOfList = function () {
-        if (ToBringItemLists == null)
+        if (this.ToBringItemLists == null)
             return -1;
         else
-            return ToBringItemLists.length;
+            return this.ToBringItemLists.size;
     };
     User.prototype.GetJson = function () {
         var temp = {
@@ -550,14 +558,26 @@ var ItemList = /** @class */ (function () {
         }
         else {
             this.Name = data.Name;
-            this.Items = data.Items;
+            this.Items = new Set();
+            console.log("bla");
+            console.log(data.Items);
+            for (var _i = 0, _a = data.Items; _i < _a.length; _i++) {
+                var item = _a[_i];
+                console.log(item);
+                this.Items.add(item);
+            }
         }
     }
     ItemList.prototype.GetJson = function () {
         ;
+        var tempArray = new Array();
+        this.Items.forEach(function (value, value2, set) {
+            console.log(value);
+            tempArray.push(value);
+        });
         return {
             Name: this.Name,
-            Items: this.Items.toString()
+            Items: tempArray
         };
     };
     return ItemList;

@@ -11,7 +11,7 @@ const newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
 var request = require('request-promise');
 
 const ToBringItemLists = "ToBringItemLists";
-const Always = "Always";
+const Always = "always";
 
 const LaunchRequestHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
@@ -28,6 +28,9 @@ const LaunchRequestHandler = {
 			let newUser = new User();
 			newUser.InitializeUser();
 			let initialUserAttributes = newUser.GetJson();
+
+			console.log(newUser);
+			console.log(initialUserAttributes);
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
@@ -337,8 +340,12 @@ function GetToBringItemSpeech(data: User) {
 			return "You have not told me what item you would like to bring everytime you go out. " +
 				"You can add item that you want to bring by saying add to bring item. ";
 		} else {
+			console.log("Not Empty");
 			var itemsList = '';
+			console.log(alwaysList.Items);
 			alwaysList.Items.forEach((value, value2, set) => {
+				console.log(value);
+				console.log(value2);
 				itemsList += value + ",";
 			})
 
@@ -494,6 +501,9 @@ class User {
 		this.ToBringItemLists.set(listName, new ItemList());
 		this.ToBringItemLists.get(listName).Items = new Set<string>();
 		this.ToBringItemLists.get(listName).Name = listName
+
+		this.ToBringItemLists.get(listName).Items.add("laptop");
+		this.ToBringItemLists.get(listName).Items.add("key");
 	}
 
 	AddItemToList(listName: string, itemName: string) : boolean {
@@ -527,8 +537,8 @@ class User {
 	}
 
 	GetNumberOfList() : number {
-		if(ToBringItemLists == null) return -1;
-		else return ToBringItemLists.length;
+		if(this.ToBringItemLists == null) return -1;
+		else return this.ToBringItemLists.size;
 	}
 
 	GetJson() : any {
@@ -547,22 +557,37 @@ class User {
 class ItemList {
 	constructor()
 	constructor(data: ItemList)
-	constructor(data?: ItemList) {
+	constructor(data?: any) {
 		if(data == null) {
 			this.Name = null;
 			this.Items = null;
 		} else {
 			this.Name = data.Name;
-			this.Items = data.Items;
+			this.Items = new Set<string>();
+
+			console.log("bla");
+			console.log(data.Items);
+			for(let item of data.Items) {
+				console.log(item);
+				this.Items.add(item);
+			}
 		}
 	}
 	Name: string;
 	Items: Set<string>;
 
 	GetJson() : any {;
+
+		let tempArray = new Array<string>();
+
+		this.Items.forEach((value, value2, set) => {
+			console.log(value);
+			tempArray.push(value);
+		})
+
 		return {
 			Name: this.Name,
-			Items: this.Items.toString()
+			Items: tempArray
 		}
 	}
 }
