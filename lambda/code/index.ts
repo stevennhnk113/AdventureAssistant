@@ -54,6 +54,10 @@ const GoingOutIntentHandler = {
 		let newsSpeech = '';
 		let toBringItemSpeech = '';
 
+		// Get news
+		newsSpeech += await GetNews(true);
+		speechText += newsSpeech;
+
 		// Get Weather
 		const { requestEnvelope, serviceClientFactory } = handlerInput;
 		const { deviceId } = requestEnvelope.context.System.device;
@@ -67,16 +71,11 @@ const GoingOutIntentHandler = {
 		} else {
 			console.log("service clinent is null");
 		}
-
-		// Get news
-		newsSpeech += await GetNews(true);
+		speechText += weatherSpeech;
 
 		// Get to bring item
 		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 		toBringItemSpeech += GetToBringItemSpeech(user);
-
-		speechText += newsSpeech;
-		speechText += weatherSpeech;
 		speechText += toBringItemSpeech;
 
 		speechText += "Have fun";
@@ -148,7 +147,8 @@ function GetNews(isGetNews: boolean) : Promise<string> {
 
 		newsapi.v2.topHeadlines({
 			language: 'en',
-			country: 'us'
+			country: 'us', 
+			pageSize: 2
 		}).then((data:any)  => {
 			console.log(data);
 			if (data.status !== "ok") {

@@ -90,7 +90,7 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _a, _b, user, _c;
+            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, _a, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _b, user, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -98,37 +98,37 @@ var GoingOutIntentHandler = {
                         weatherSpeech = '';
                         newsSpeech = '';
                         toBringItemSpeech = '';
+                        // Get news
+                        _a = newsSpeech;
+                        return [4 /*yield*/, GetNews(true)];
+                    case 1:
+                        // Get news
+                        newsSpeech = _a + _d.sent();
+                        speechText += newsSpeech;
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 4];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 5];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
-                    case 1:
-                        address = _d.sent();
-                        if (!(address.postalCode != undefined)) return [3 /*break*/, 3];
-                        _a = weatherSpeech;
-                        return [4 /*yield*/, GetWeather(address.postalCode)];
                     case 2:
-                        weatherSpeech = _a + _d.sent();
-                        _d.label = 3;
-                    case 3: return [3 /*break*/, 5];
-                    case 4:
-                        console.log("service clinent is null");
-                        _d.label = 5;
+                        address = _d.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 4];
+                        _b = weatherSpeech;
+                        return [4 /*yield*/, GetWeather(address.postalCode)];
+                    case 3:
+                        weatherSpeech = _b + _d.sent();
+                        _d.label = 4;
+                    case 4: return [3 /*break*/, 6];
                     case 5:
-                        // Get news
-                        _b = newsSpeech;
-                        return [4 /*yield*/, GetNews(true)];
+                        console.log("service clinent is null");
+                        _d.label = 6;
                     case 6:
-                        // Get news
-                        newsSpeech = _b + _d.sent();
+                        speechText += weatherSpeech;
                         _c = User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 7:
                         user = new (_c.apply(User, [void 0, _d.sent()]))();
                         toBringItemSpeech += GetToBringItemSpeech(user);
-                        speechText += newsSpeech;
-                        speechText += weatherSpeech;
                         speechText += toBringItemSpeech;
                         speechText += "Have fun";
                         console.log(speechText);
@@ -191,7 +191,8 @@ function GetNews(isGetNews) {
         }
         newsapi.v2.topHeadlines({
             language: 'en',
-            country: 'us'
+            country: 'us',
+            pageSize: 2
         }).then(function (data) {
             console.log(data);
             if (data.status !== "ok") {
