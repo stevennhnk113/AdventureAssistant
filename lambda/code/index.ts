@@ -1,6 +1,6 @@
 import * as Alexa from 'ask-sdk';
 import { DynamoDB, DeviceFarm } from 'aws-sdk';
-import { services } from "ask-sdk-model";
+import { services, IntentRequest } from "ask-sdk-model";
 import { resolve } from 'dns';
 import { rejects } from 'assert';
 import { stringify } from 'querystring';
@@ -79,9 +79,50 @@ const GoingOutIntentHandler = {
 		// Get to bring item
 		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 		toBringItemSpeech += GetToBringItemSpeech(user);
+		speechText += "Don't for get to bring your ";
 		speechText += toBringItemSpeech;
 
 		speechText += "Have fun";
+
+		console.log(speechText);
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.withSimpleCard('Have fun', speechText)
+			.getResponse();
+	}
+};
+
+const AddItemToListIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'AddItemToListIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		let speechText = 'I added';
+
+		const { requestEnvelope } = handlerInput;
+		const { intent } = requestEnvelope.request as IntentRequest;
+		console.log(intent);
+
+		return handlerInput.responseBuilder
+			.addDelegateDirective()
+			.getResponse();
+
+		// return handlerInput.responseBuilder
+		// 	.speak(speechText)
+		// 	.withSimpleCard('Have fun', speechText)
+		// 	.getResponse();
+	}
+};
+
+const RemoveItemFromListIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'RemoveItemFromListIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		let speechText = '';
 
 		console.log(speechText);
 
@@ -98,12 +139,12 @@ const HelpIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'You can say hello to me!';
+		const speechText = 'You can say I am off!';
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
 			.reprompt(speechText)
-			.withSimpleCard('Hello World', speechText)
+			.withSimpleCard('You can say I am off!', speechText)
 			.getResponse();
 	}
 };
@@ -119,7 +160,7 @@ const CancelAndStopIntentHandler = {
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withSimpleCard('Hello World', speechText)
+			.withSimpleCard('Goodbye', speechText)
 			.getResponse();
 	}
 };
@@ -342,14 +383,13 @@ function GetToBringItemSpeech(data: User) {
 		} else {
 			console.log("Not Empty");
 			var itemsList = '';
-			console.log(alwaysList.Items);
-			alwaysList.Items.forEach((value, value2, set) => {
-				console.log(value);
-				console.log(value2);
-				itemsList += value + ",";
-			})
+			alwaysList.Items.forEach((value) => {
+				itemsList += value + ", ";
+			});
 
-			console.log(itemsList);
+			// Remove the last ", " and add a period
+			itemsList = itemsList.substr(0, itemsList.length - 2);
+			itemsList += ". ";
 
 			return itemsList;
 		}
@@ -565,10 +605,7 @@ class ItemList {
 			this.Name = data.Name;
 			this.Items = new Set<string>();
 
-			console.log("bla");
-			console.log(data.Items);
 			for(let item of data.Items) {
-				console.log(item);
 				this.Items.add(item);
 			}
 		}
@@ -581,7 +618,6 @@ class ItemList {
 		let tempArray = new Array<string>();
 
 		this.Items.forEach((value, value2, set) => {
-			console.log(value);
 			tempArray.push(value);
 		})
 
@@ -607,9 +643,11 @@ var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapter
 exports.handler = Alexa.SkillBuilders.standard()
 	.addRequestHandlers(LaunchRequestHandler,
 		GoingOutIntentHandler,
+		AddItemToListIntentHandler,
+		RemoveItemFromListIntentHandler,
 		HelpIntentHandler,
 		CancelAndStopIntentHandler,
 		SessionEndedRequestHandler)
 	.withTableName("AdventureAssistant")
 	.withAutoCreateTable(true)
-	.lambda();
+	.lambda(); 

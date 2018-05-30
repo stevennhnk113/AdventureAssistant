@@ -131,6 +131,7 @@ var GoingOutIntentHandler = {
                     case 7:
                         user = new (_c.apply(User, [void 0, _d.sent()]))();
                         toBringItemSpeech += GetToBringItemSpeech(user);
+                        speechText += "Don't for get to bring your ";
                         speechText += toBringItemSpeech;
                         speechText += "Have fun";
                         console.log(speechText);
@@ -143,17 +144,56 @@ var GoingOutIntentHandler = {
         });
     }
 };
+var AddItemToListIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AddItemToListIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var speechText, requestEnvelope, intent;
+            return __generator(this, function (_a) {
+                speechText = 'I added';
+                requestEnvelope = handlerInput.requestEnvelope;
+                intent = requestEnvelope.request.intent;
+                console.log(intent);
+                return [2 /*return*/, handlerInput.responseBuilder
+                        .addDelegateDirective()
+                        .getResponse()];
+            });
+        });
+    }
+};
+var RemoveItemFromListIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'RemoveItemFromListIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var speechText;
+            return __generator(this, function (_a) {
+                speechText = '';
+                console.log(speechText);
+                return [2 /*return*/, handlerInput.responseBuilder
+                        .speak(speechText)
+                        .withSimpleCard('Have fun', speechText)
+                        .getResponse()];
+            });
+        });
+    }
+};
 var HelpIntentHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
     },
     handle: function (handlerInput) {
-        var speechText = 'You can say hello to me!';
+        var speechText = 'You can say I am off!';
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
-            .withSimpleCard('Hello World', speechText)
+            .withSimpleCard('You can say I am off!', speechText)
             .getResponse();
     }
 };
@@ -167,7 +207,7 @@ var CancelAndStopIntentHandler = {
         var speechText = 'Goodbye!';
         return handlerInput.responseBuilder
             .speak(speechText)
-            .withSimpleCard('Hello World', speechText)
+            .withSimpleCard('Goodbye', speechText)
             .getResponse();
     }
 };
@@ -374,13 +414,12 @@ function GetToBringItemSpeech(data) {
         else {
             console.log("Not Empty");
             var itemsList = '';
-            console.log(alwaysList.Items);
-            alwaysList.Items.forEach(function (value, value2, set) {
-                console.log(value);
-                console.log(value2);
-                itemsList += value + ",";
+            alwaysList.Items.forEach(function (value) {
+                itemsList += value + ", ";
             });
-            console.log(itemsList);
+            // Remove the last ", " and add a period
+            itemsList = itemsList.substr(0, itemsList.length - 2);
+            itemsList += ". ";
             return itemsList;
         }
     }
@@ -559,11 +598,8 @@ var ItemList = /** @class */ (function () {
         else {
             this.Name = data.Name;
             this.Items = new Set();
-            console.log("bla");
-            console.log(data.Items);
             for (var _i = 0, _a = data.Items; _i < _a.length; _i++) {
                 var item = _a[_i];
-                console.log(item);
                 this.Items.add(item);
             }
         }
@@ -572,7 +608,6 @@ var ItemList = /** @class */ (function () {
         ;
         var tempArray = new Array();
         this.Items.forEach(function (value, value2, set) {
-            console.log(value);
             tempArray.push(value);
         });
         return {
@@ -590,7 +625,7 @@ var persistenceAdapterConfig = {
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
-    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
+    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();
