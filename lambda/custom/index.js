@@ -43,8 +43,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var Alexa = __importStar(require("ask-sdk"));
-var class_1 = require("./class");
-var constant_1 = require("./constant");
+var Class_1 = require("./Class");
+var Constant_1 = require("./Constant");
 // Helper
 var SpeechHelper = __importStar(require("./SpeechHelper"));
 var NewsAPI = require('newsapi');
@@ -66,7 +66,7 @@ var LaunchRequestHandler = {
                         result = _a.sent();
                         if (Object.keys(result).length === 0) {
                             speechText += 'Welcome to Adventure Assistant!';
-                            newUser = new class_1.User();
+                            newUser = new Class_1.User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
@@ -100,10 +100,10 @@ var GoingOutIntentHandler = {
                         weatherSpeech = '';
                         newsSpeech = '';
                         toBringItemSpeech = '';
-                        _a = class_1.User.bind;
+                        _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(class_1.User, [void 0, _d.sent()]))();
+                        user = new (_a.apply(Class_1.User, [void 0, _d.sent()]))();
                         // Get news
                         newsSpeech += "Today news. ";
                         _b = newsSpeech;
@@ -158,21 +158,21 @@ var AddItemToListIntentHandler = {
                 switch (_b.label) {
                     case 0:
                         speechText = '';
-                        _a = class_1.User.bind;
+                        _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(class_1.User, [void 0, _b.sent()]))();
+                        user = new (_a.apply(Class_1.User, [void 0, _b.sent()]))();
                         requestEnvelope = handlerInput.requestEnvelope;
                         intentRequest = requestEnvelope.request;
-                        if (intentRequest.intent.slots[constant_1.ItemType].value == null) {
+                        if (intentRequest.intent.slots[Constant_1.ItemType].value == null) {
                             return [2 /*return*/, handlerInput.responseBuilder
                                     .addDelegateDirective()
                                     .getResponse()];
                         }
-                        list = user.GetList(constant_1.Always);
-                        item = intentRequest.intent.slots[constant_1.ItemType].value;
+                        list = user.GetList(Constant_1.Always);
+                        item = intentRequest.intent.slots[Constant_1.ItemType].value;
                         result = list.AddItem(item);
-                        if (result == constant_1.CRUDResult.Exist) {
+                        if (result == Constant_1.CRUDResult.Exist) {
                             speechText += "You already have " + item + " in your to bring item";
                             handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
                             handlerInput.attributesManager.savePersistentAttributes();
@@ -201,22 +201,22 @@ var RemoveItemFromListIntentHandler = {
                 switch (_b.label) {
                     case 0:
                         speechText = '<speak>';
-                        _a = class_1.User.bind;
+                        _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(class_1.User, [void 0, _b.sent()]))();
+                        user = new (_a.apply(Class_1.User, [void 0, _b.sent()]))();
                         requestEnvelope = handlerInput.requestEnvelope;
                         intentRequest = requestEnvelope.request;
-                        if (intentRequest.intent.slots[constant_1.ItemType].value == null) {
+                        if (intentRequest.intent.slots[Constant_1.ItemType].value == null) {
                             speechText += "<speak>";
                             return [2 /*return*/, handlerInput.responseBuilder
                                     .addDelegateDirective()
                                     .getResponse()];
                         }
-                        list = user.GetList(constant_1.Always);
-                        item = intentRequest.intent.slots[constant_1.ItemType].value;
+                        list = user.GetList(Constant_1.Always);
+                        item = intentRequest.intent.slots[Constant_1.ItemType].value;
                         result = list.RemoveItem(item);
-                        if (result == constant_1.CRUDResult.NotExist) {
+                        if (result == Constant_1.CRUDResult.NotExist) {
                             speechText += "You do not have " + item + " in your to bring item.";
                         }
                         else {

@@ -6,8 +6,8 @@ import { rejects } from 'assert';
 import { stringify } from 'querystring';
 import { INSPECT_MAX_BYTES } from 'buffer';
 
-import { User, ItemList } from "./class";
-import { Always, ItemType, CRUDResult } from "./constant";
+import { User, ItemList } from "./Class";
+import { Always, ItemType, CRUDResult } from "./Constant";
 
 // Helper
 import * as SpeechHelper from "./SpeechHelper";

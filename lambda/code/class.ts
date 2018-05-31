@@ -1,4 +1,4 @@
-import { Always, CRUDResult } from "./constant";
+import { Always, CRUDResult } from "./Constant";
 
 export class User {
 	ToBringItemLists: Map<string, ItemList>;

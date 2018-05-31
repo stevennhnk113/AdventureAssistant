@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var constant_1 = require("./constant");
+var Constant_1 = require("./Constant");
 var User = /** @class */ (function () {
     function User(data) {
         var _this = this;
@@ -16,7 +16,7 @@ var User = /** @class */ (function () {
     }
     User.prototype.InitializeUser = function () {
         this.ToBringItemLists = new Map();
-        this.AddList(constant_1.Always);
+        this.AddList(Constant_1.Always);
     };
     User.prototype.AddList = function (listName) {
         this.ToBringItemLists.set(listName, new ItemList());
@@ -65,20 +65,20 @@ var ItemList = /** @class */ (function () {
     }
     ItemList.prototype.AddItem = function (item) {
         if (this.Items.has(item)) {
-            return constant_1.CRUDResult.Exist;
+            return Constant_1.CRUDResult.Exist;
         }
         else {
             this.Items.add(item);
-            return constant_1.CRUDResult.Success;
+            return Constant_1.CRUDResult.Success;
         }
     };
     ItemList.prototype.RemoveItem = function (item) {
         if (this.Items.has(item)) {
             this.Items.delete(item);
-            return constant_1.CRUDResult.Success;
+            return Constant_1.CRUDResult.Success;
         }
         else {
-            return constant_1.CRUDResult.NotExist;
+            return Constant_1.CRUDResult.NotExist;
         }
     };
     ItemList.prototype.NumberOfItem = function () {
