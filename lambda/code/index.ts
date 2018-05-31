@@ -4,6 +4,7 @@ import { services, IntentRequest } from "ask-sdk-model";
 import { resolve } from 'dns';
 import { rejects } from 'assert';
 import { stringify } from 'querystring';
+import { INSPECT_MAX_BYTES } from 'buffer';
 
 const NewsAPI = require('newsapi');
 const newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
@@ -12,6 +13,7 @@ var request = require('request-promise');
 
 const ToBringItemLists = "ToBringItemLists";
 const Always = "always";
+const ItemType = "ItemType";
 
 const LaunchRequestHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
@@ -98,21 +100,29 @@ const AddItemToListIntentHandler = {
 		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
 			&& handlerInput.requestEnvelope.request.intent.name === 'AddItemToListIntent';
 	},
-	async handle(handlerInput: Alexa.HandlerInput) {
-		let speechText = 'I added';
+	async handle(handlerInput: Alexa.HandlerInput) { 
 
+		let speechText = '';
+
+		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 		const { requestEnvelope } = handlerInput;
-		const { intent } = requestEnvelope.request as IntentRequest;
-		console.log(intent);
-
-		return handlerInput.responseBuilder
+		const intentRequest = requestEnvelope.request as IntentRequest;
+		
+		if(intentRequest.intent.slots[ItemType].value == null)
+		{
+			return handlerInput.responseBuilder
 			.addDelegateDirective()
 			.getResponse();
+		}
 
-		// return handlerInput.responseBuilder
-		// 	.speak(speechText)
-		// 	.withSimpleCard('Have fun', speechText)
-		// 	.getResponse();
+		const alwaysList = user.GetList(Always);
+
+		speechText += "I added " + intentRequest.intent.slots[ItemType].value;
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.withSimpleCard('Have fun', speechText)
+			.getResponse();
 	}
 };
 
@@ -540,10 +550,18 @@ class User {
 	AddList(listName: string) : void {
 		this.ToBringItemLists.set(listName, new ItemList());
 		this.ToBringItemLists.get(listName).Items = new Set<string>();
-		this.ToBringItemLists.get(listName).Name = listName
+		this.ToBringItemLists.get(listName).Name = listName;
+	}
 
-		this.ToBringItemLists.get(listName).Items.add("laptop");
-		this.ToBringItemLists.get(listName).Items.add("key");
+	GetList(listName: string) : ItemList {
+		if(this.ToBringItemLists.has(listName))
+		{
+			return this.ToBringItemLists.get(listName);
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	AddItemToList(listName: string, itemName: string) : boolean {

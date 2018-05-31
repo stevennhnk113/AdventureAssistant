@@ -48,6 +48,7 @@ var newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
 var request = require('request-promise');
 var ToBringItemLists = "ToBringItemLists";
 var Always = "always";
+var ItemType = "ItemType";
 var LaunchRequestHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
@@ -151,15 +152,29 @@ var AddItemToListIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, requestEnvelope, intent;
-            return __generator(this, function (_a) {
-                speechText = 'I added';
-                requestEnvelope = handlerInput.requestEnvelope;
-                intent = requestEnvelope.request.intent;
-                console.log(intent);
-                return [2 /*return*/, handlerInput.responseBuilder
-                        .addDelegateDirective()
-                        .getResponse()];
+            var speechText, user, _a, requestEnvelope, intentRequest, alwaysList;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        speechText = '';
+                        _a = User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                    case 1:
+                        user = new (_a.apply(User, [void 0, _b.sent()]))();
+                        requestEnvelope = handlerInput.requestEnvelope;
+                        intentRequest = requestEnvelope.request;
+                        if (intentRequest.intent.slots[ItemType].value == null) {
+                            return [2 /*return*/, handlerInput.responseBuilder
+                                    .addDelegateDirective()
+                                    .getResponse()];
+                        }
+                        alwaysList = user.GetList(Always);
+                        speechText += "I added " + intentRequest.intent.slots[ItemType].value;
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(speechText)
+                                .withSimpleCard('Have fun', speechText)
+                                .getResponse()];
+                }
             });
         });
     }
@@ -543,8 +558,14 @@ var User = /** @class */ (function () {
         this.ToBringItemLists.set(listName, new ItemList());
         this.ToBringItemLists.get(listName).Items = new Set();
         this.ToBringItemLists.get(listName).Name = listName;
-        this.ToBringItemLists.get(listName).Items.add("laptop");
-        this.ToBringItemLists.get(listName).Items.add("key");
+    };
+    User.prototype.GetList = function (listName) {
+        if (this.ToBringItemLists.has(listName)) {
+            return this.ToBringItemLists.get(listName);
+        }
+        else {
+            return null;
+        }
     };
     User.prototype.AddItemToList = function (listName, itemName) {
         var list = this.ToBringItemLists.get(listName);
