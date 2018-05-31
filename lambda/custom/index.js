@@ -43,12 +43,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var Alexa = __importStar(require("ask-sdk"));
+var class_1 = require("./class");
+var constant_1 = require("./constant");
+// Helper
+var SpeechHelper = __importStar(require("./SpeechHelper"));
 var NewsAPI = require('newsapi');
 var newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
 var request = require('request-promise');
-var ToBringItemLists = "ToBringItemLists";
-var Always = "always";
-var ItemType = "ItemType";
 var LaunchRequestHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
@@ -65,11 +66,9 @@ var LaunchRequestHandler = {
                         result = _a.sent();
                         if (Object.keys(result).length === 0) {
                             speechText += 'Welcome to Adventure Assistant!';
-                            newUser = new User();
+                            newUser = new class_1.User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
-                            console.log(newUser);
-                            console.log(initialUserAttributes);
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -93,7 +92,7 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, _a, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _b, user, _c;
+            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, _b, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -101,41 +100,43 @@ var GoingOutIntentHandler = {
                         weatherSpeech = '';
                         newsSpeech = '';
                         toBringItemSpeech = '';
-                        // Get news
-                        _a = newsSpeech;
-                        return [4 /*yield*/, GetNews(true)];
+                        _a = class_1.User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
+                        user = new (_a.apply(class_1.User, [void 0, _d.sent()]))();
                         // Get news
-                        newsSpeech = _a + _d.sent();
-                        speechText += newsSpeech;
+                        newsSpeech += "Today news. ";
+                        _b = newsSpeech;
+                        return [4 /*yield*/, GetNews(true)];
+                    case 2:
+                        newsSpeech = _b + _d.sent();
+                        speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+                        // Get Weather
+                        weatherSpeech += "About the weather. ";
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 5];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 6];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
-                    case 2:
-                        address = _d.sent();
-                        if (!(address.postalCode != undefined)) return [3 /*break*/, 4];
-                        _b = weatherSpeech;
-                        return [4 /*yield*/, GetWeather(address.postalCode)];
                     case 3:
-                        weatherSpeech = _b + _d.sent();
-                        _d.label = 4;
-                    case 4: return [3 /*break*/, 6];
-                    case 5:
-                        console.log("service clinent is null");
-                        _d.label = 6;
+                        address = _d.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 5];
+                        _c = weatherSpeech;
+                        return [4 /*yield*/, GetWeather(address.postalCode)];
+                    case 4:
+                        weatherSpeech = _c + _d.sent();
+                        _d.label = 5;
+                    case 5: return [3 /*break*/, 7];
                     case 6:
-                        speechText += weatherSpeech;
-                        _c = User.bind;
-                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                        console.log("service clinent is null");
+                        _d.label = 7;
                     case 7:
-                        user = new (_c.apply(User, [void 0, _d.sent()]))();
+                        speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
+                        // Get to bring item
+                        toBringItemSpeech += "Also. Don't for get to bring your ";
                         toBringItemSpeech += GetToBringItemSpeech(user);
-                        speechText += "Don't for get to bring your ";
-                        speechText += toBringItemSpeech;
+                        speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
                         speechText += "Have fun";
-                        console.log(speechText);
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .withSimpleCard('Have fun', speechText)
@@ -152,24 +153,33 @@ var AddItemToListIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, user, _a, requestEnvelope, intentRequest, alwaysList;
+            var speechText, user, _a, requestEnvelope, intentRequest, list, item, result;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         speechText = '';
-                        _a = User.bind;
+                        _a = class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(User, [void 0, _b.sent()]))();
+                        user = new (_a.apply(class_1.User, [void 0, _b.sent()]))();
                         requestEnvelope = handlerInput.requestEnvelope;
                         intentRequest = requestEnvelope.request;
-                        if (intentRequest.intent.slots[ItemType].value == null) {
+                        if (intentRequest.intent.slots[constant_1.ItemType].value == null) {
                             return [2 /*return*/, handlerInput.responseBuilder
                                     .addDelegateDirective()
                                     .getResponse()];
                         }
-                        alwaysList = user.GetList(Always);
-                        speechText += "I added " + intentRequest.intent.slots[ItemType].value;
+                        list = user.GetList(constant_1.Always);
+                        item = intentRequest.intent.slots[constant_1.ItemType].value;
+                        result = list.AddItem(item);
+                        if (result == constant_1.CRUDResult.Exist) {
+                            speechText += "You already have " + item + " in your to bring item";
+                            handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+                            handlerInput.attributesManager.savePersistentAttributes();
+                        }
+                        else {
+                            speechText += item + " is added to your list.";
+                        }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .withSimpleCard('Have fun', speechText)
@@ -186,14 +196,40 @@ var RemoveItemFromListIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText;
-            return __generator(this, function (_a) {
-                speechText = '';
-                console.log(speechText);
-                return [2 /*return*/, handlerInput.responseBuilder
-                        .speak(speechText)
-                        .withSimpleCard('Have fun', speechText)
-                        .getResponse()];
+            var speechText, user, _a, requestEnvelope, intentRequest, list, item, result;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        speechText = '<speak>';
+                        _a = class_1.User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                    case 1:
+                        user = new (_a.apply(class_1.User, [void 0, _b.sent()]))();
+                        requestEnvelope = handlerInput.requestEnvelope;
+                        intentRequest = requestEnvelope.request;
+                        if (intentRequest.intent.slots[constant_1.ItemType].value == null) {
+                            speechText += "<speak>";
+                            return [2 /*return*/, handlerInput.responseBuilder
+                                    .addDelegateDirective()
+                                    .getResponse()];
+                        }
+                        list = user.GetList(constant_1.Always);
+                        item = intentRequest.intent.slots[constant_1.ItemType].value;
+                        result = list.RemoveItem(item);
+                        if (result == constant_1.CRUDResult.NotExist) {
+                            speechText += "You do not have " + item + " in your to bring item.";
+                        }
+                        else {
+                            speechText += item + " is removed to your list.";
+                            handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+                            handlerInput.attributesManager.savePersistentAttributes();
+                        }
+                        speechText += "<speak>";
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(speechText)
+                                .withSimpleCard('Have fun', speechText)
+                                .getResponse()];
+                }
             });
         });
     }
@@ -421,21 +457,23 @@ function GetToBringItemSpeech(data) {
     var alwaysList = GetList(data, "always");
     if (numberOfList === 1) {
         console.log("Just always");
-        if (alwaysList.Items.size === 0) {
+        if (alwaysList.NumberOfItem() === 0) {
             console.log("Empty");
             return "You have not told me what item you would like to bring everytime you go out. " +
                 "You can add item that you want to bring by saying add to bring item. ";
         }
         else {
             console.log("Not Empty");
-            var itemsList = '';
-            alwaysList.Items.forEach(function (value) {
-                itemsList += value + ", ";
-            });
+            var speech = '';
+            var itemList = alwaysList.GetList();
+            for (var _i = 0, itemList_1 = itemList; _i < itemList_1.length; _i++) {
+                var item = itemList_1[_i];
+                speech += item + ", ";
+            }
             // Remove the last ", " and add a period
-            itemsList = itemsList.substr(0, itemsList.length - 2);
-            itemsList += ". ";
-            return itemsList;
+            speech = speech.substr(0, speech.length - 2);
+            speech += ". ";
+            return speech;
         }
     }
 }
@@ -537,107 +575,6 @@ function GetList(data, listName) {
 // 	data.event.request.intent.slots[slotName].value = value;
 // }
 // Class
-var User = /** @class */ (function () {
-    function User(data) {
-        var _this = this;
-        if (data == null) {
-            this.ToBringItemLists = null;
-        }
-        else {
-            this.ToBringItemLists = new Map();
-            Object.keys(data.ToBringItemLists).forEach(function (key) {
-                _this.ToBringItemLists.set(key, new ItemList(data.ToBringItemLists[key]));
-            });
-        }
-    }
-    User.prototype.InitializeUser = function () {
-        this.ToBringItemLists = new Map();
-        this.AddList(Always);
-    };
-    User.prototype.AddList = function (listName) {
-        this.ToBringItemLists.set(listName, new ItemList());
-        this.ToBringItemLists.get(listName).Items = new Set();
-        this.ToBringItemLists.get(listName).Name = listName;
-    };
-    User.prototype.GetList = function (listName) {
-        if (this.ToBringItemLists.has(listName)) {
-            return this.ToBringItemLists.get(listName);
-        }
-        else {
-            return null;
-        }
-    };
-    User.prototype.AddItemToList = function (listName, itemName) {
-        var list = this.ToBringItemLists.get(listName);
-        if (list.Items == null) {
-            list.Items = new Set();
-        }
-        if (list.Items.has(itemName)) {
-            return false;
-        }
-        else {
-            list.Items.add(itemName);
-            return true;
-        }
-    };
-    User.prototype.RemoveItemFromList = function (listName, itemName) {
-        var list = this.ToBringItemLists.get(listName);
-        if (list.Items == null) {
-            return false;
-        }
-        if (list.Items.has(itemName)) {
-            list.Items.delete(itemName);
-            return true;
-        }
-        else {
-            return false;
-        }
-    };
-    User.prototype.GetNumberOfList = function () {
-        if (this.ToBringItemLists == null)
-            return -1;
-        else
-            return this.ToBringItemLists.size;
-    };
-    User.prototype.GetJson = function () {
-        var temp = {
-            ToBringItemLists: Object.create(null)
-        };
-        this.ToBringItemLists.forEach(function (value, key, map) {
-            temp.ToBringItemLists[key] = value.GetJson();
-        });
-        return temp;
-    };
-    return User;
-}());
-var ItemList = /** @class */ (function () {
-    function ItemList(data) {
-        if (data == null) {
-            this.Name = null;
-            this.Items = null;
-        }
-        else {
-            this.Name = data.Name;
-            this.Items = new Set();
-            for (var _i = 0, _a = data.Items; _i < _a.length; _i++) {
-                var item = _a[_i];
-                this.Items.add(item);
-            }
-        }
-    }
-    ItemList.prototype.GetJson = function () {
-        ;
-        var tempArray = new Array();
-        this.Items.forEach(function (value, value2, set) {
-            tempArray.push(value);
-        });
-        return {
-            Name: this.Name,
-            Items: tempArray
-        };
-    };
-    return ItemList;
-}());
 // Lambda init
 var persistenceAdapterConfig = {
     tableName: "AdventureAssistant",

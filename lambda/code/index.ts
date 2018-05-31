@@ -6,14 +6,16 @@ import { rejects } from 'assert';
 import { stringify } from 'querystring';
 import { INSPECT_MAX_BYTES } from 'buffer';
 
+import { User, ItemList } from "./class";
+import { Always, ItemType, CRUDResult } from "./constant";
+
+// Helper
+import * as SpeechHelper from "./SpeechHelper";
+
 const NewsAPI = require('newsapi');
 const newsapi = new NewsAPI('abf132c54ec14a7a8d3817cb48abee71');
 
 var request = require('request-promise');
-
-const ToBringItemLists = "ToBringItemLists";
-const Always = "always";
-const ItemType = "ItemType";
 
 const LaunchRequestHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
@@ -30,9 +32,6 @@ const LaunchRequestHandler = {
 			let newUser = new User();
 			newUser.InitializeUser();
 			let initialUserAttributes = newUser.GetJson();
-
-			console.log(newUser);
-			console.log(initialUserAttributes);
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
@@ -58,12 +57,15 @@ const GoingOutIntentHandler = {
 		let weatherSpeech = '';
 		let newsSpeech = '';
 		let toBringItemSpeech = '';
+		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 
 		// Get news
+		newsSpeech += "Today news. ";
 		newsSpeech += await GetNews(true);
-		speechText += newsSpeech;
+		speechText += SpeechHelper.AddBreak(newsSpeech, 1);
 
 		// Get Weather
+		weatherSpeech += "About the weather. ";
 		const { requestEnvelope, serviceClientFactory } = handlerInput;
 		const { deviceId } = requestEnvelope.context.System.device;
 		if(serviceClientFactory != null){
@@ -76,17 +78,14 @@ const GoingOutIntentHandler = {
 		} else {
 			console.log("service clinent is null");
 		}
-		speechText += weatherSpeech;
+		speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
 
 		// Get to bring item
-		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
+		toBringItemSpeech += "Also. Don't for get to bring your ";
 		toBringItemSpeech += GetToBringItemSpeech(user);
-		speechText += "Don't for get to bring your ";
-		speechText += toBringItemSpeech;
+		speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
 
 		speechText += "Have fun";
-
-		console.log(speechText);
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -115,9 +114,22 @@ const AddItemToListIntentHandler = {
 			.getResponse();
 		}
 
-		const alwaysList = user.GetList(Always);
+		let list = user.GetList(Always);
+		const item = intentRequest.intent.slots[ItemType].value;
 
-		speechText += "I added " + intentRequest.intent.slots[ItemType].value;
+		const result = list.AddItem(item);
+
+		if(result == CRUDResult.Exist)
+		{
+			speechText += "You already have " + item + " in your to bring item";
+
+			handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+			handlerInput.attributesManager.savePersistentAttributes();
+		}
+		else
+		{
+			speechText += item + " is added to your list."
+		}
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -132,9 +144,38 @@ const RemoveItemFromListIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'RemoveItemFromListIntent';
 	},
 	async handle(handlerInput: Alexa.HandlerInput) {
-		let speechText = '';
+		let speechText = '<speak>';
 
-		console.log(speechText);
+		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
+		const { requestEnvelope } = handlerInput;
+		const intentRequest = requestEnvelope.request as IntentRequest;
+		
+		if(intentRequest.intent.slots[ItemType].value == null)
+		{
+			speechText += "<speak>";
+			return handlerInput.responseBuilder
+			.addDelegateDirective()
+			.getResponse();
+		}
+
+		let list = user.GetList(Always);
+		const item = intentRequest.intent.slots[ItemType].value;
+
+		const result = list.RemoveItem(item);
+
+		if(result == CRUDResult.NotExist)
+		{
+			speechText += "You do not have " + item + " in your to bring item.";
+		}
+		else
+		{
+			speechText += item + " is removed to your list."
+
+			handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+			handlerInput.attributesManager.savePersistentAttributes();
+		}
+
+		speechText += "<speak>";
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -386,22 +427,25 @@ function GetToBringItemSpeech(data: User) {
 
 	if (numberOfList === 1) {
 		console.log("Just always");
-		if (alwaysList.Items.size === 0) {
+		if (alwaysList.NumberOfItem() === 0) {
 			console.log("Empty");
 			return "You have not told me what item you would like to bring everytime you go out. " +
 				"You can add item that you want to bring by saying add to bring item. ";
 		} else {
 			console.log("Not Empty");
-			var itemsList = '';
-			alwaysList.Items.forEach((value) => {
-				itemsList += value + ", ";
-			});
+			let speech = '';
+			let itemList = alwaysList.GetList();
+
+			for(let item of itemList)
+			{
+				speech += item + ", ";
+			}
 
 			// Remove the last ", " and add a period
-			itemsList = itemsList.substr(0, itemsList.length - 2);
-			itemsList += ". ";
+			speech = speech.substr(0, speech.length - 2);
+			speech += ". ";
 
-			return itemsList;
+			return speech;
 		}
 	}
 }
@@ -525,126 +569,7 @@ function GetList(data: User, listName: string) : ItemList {
 
 // Class
 
-class User {
-	ToBringItemLists: Map<string, ItemList>;
 
-	constructor()
-	constructor(data: any)
-	constructor(data?: any) {
-		if(data == null) {
-			this.ToBringItemLists = null;
-		} else {
-			this.ToBringItemLists = new Map<string, ItemList>();
-
-			Object.keys(data.ToBringItemLists).forEach((key) => {
-				this.ToBringItemLists.set(key, new ItemList(data.ToBringItemLists[key]));
-			})
-		}
-	}
-
-	InitializeUser() {
-		this.ToBringItemLists = new Map<string, ItemList>();
-		this.AddList(Always);
-	}
-
-	AddList(listName: string) : void {
-		this.ToBringItemLists.set(listName, new ItemList());
-		this.ToBringItemLists.get(listName).Items = new Set<string>();
-		this.ToBringItemLists.get(listName).Name = listName;
-	}
-
-	GetList(listName: string) : ItemList {
-		if(this.ToBringItemLists.has(listName))
-		{
-			return this.ToBringItemLists.get(listName);
-		}
-		else
-		{
-			return null;
-		}
-	}
-
-	AddItemToList(listName: string, itemName: string) : boolean {
-		let list = this.ToBringItemLists.get(listName);
-
-		if(list.Items == null) {
-			list.Items = new Set<string>();
-		}
-
-		if(list.Items.has(itemName)) {
-			return false;
-		} else {
-			list.Items.add(itemName);
-			return true;
-		}
-	}
-
-	RemoveItemFromList(listName: string, itemName: string) : boolean {
-		let list = this.ToBringItemLists.get(listName);
-
-		if(list.Items == null) {
-			return false;
-		}
-
-		if(list.Items.has(itemName)) {
-			list.Items.delete(itemName);
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	GetNumberOfList() : number {
-		if(this.ToBringItemLists == null) return -1;
-		else return this.ToBringItemLists.size;
-	}
-
-	GetJson() : any {
-		var temp = {
-			ToBringItemLists: Object.create(null)
-		}
-
-		this.ToBringItemLists.forEach((value, key, map) => {
-			temp.ToBringItemLists[key] = value.GetJson();
-		})
-
-		return temp;
-	}
-}
-
-class ItemList {
-	constructor()
-	constructor(data: ItemList)
-	constructor(data?: any) {
-		if(data == null) {
-			this.Name = null;
-			this.Items = null;
-		} else {
-			this.Name = data.Name;
-			this.Items = new Set<string>();
-
-			for(let item of data.Items) {
-				this.Items.add(item);
-			}
-		}
-	}
-	Name: string;
-	Items: Set<string>;
-
-	GetJson() : any {;
-
-		let tempArray = new Array<string>();
-
-		this.Items.forEach((value, value2, set) => {
-			tempArray.push(value);
-		})
-
-		return {
-			Name: this.Name,
-			Items: tempArray
-		}
-	}
-}
 
 // Lambda init
 var persistenceAdapterConfig = {
