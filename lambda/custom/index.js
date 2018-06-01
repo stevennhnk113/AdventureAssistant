@@ -77,8 +77,7 @@ var LaunchRequestHandler = {
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
-                                .reprompt(speechText)
-                                .withSimpleCard('Hello World', speechText)
+                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });
@@ -174,11 +173,11 @@ var AddItemToListIntentHandler = {
                         result = list.AddItem(item);
                         if (result == Constant_1.CRUDResult.Exist) {
                             speechText += "You already have " + item + " in your to bring item";
-                            handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
-                            handlerInput.attributesManager.savePersistentAttributes();
                         }
                         else {
                             speechText += item + " is added to your list.";
+                            handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+                            handlerInput.attributesManager.savePersistentAttributes();
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
@@ -219,7 +218,7 @@ var RemoveItemFromListIntentHandler = {
                             speechText += "You do not have " + item + " in your to bring item.";
                         }
                         else {
-                            speechText += item + " is removed to your list.";
+                            speechText += item + " is removed from your list.";
                             handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
@@ -238,11 +237,14 @@ var HelpIntentHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
     },
     handle: function (handlerInput) {
-        var speechText = 'You can say I am off!';
+        var speechText = "Before you leave the house, you can say I am off or I am leaving. " +
+            "I will tell you 2 recent news, the current weather, and a reminder of what you should bring. " +
+            "If you want to add an item to your reminder list, say add item. " +
+            "Say remove item if you want to remove an item.";
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
-            .withSimpleCard('You can say I am off!', speechText)
+            .withShouldEndSession(false)
             .getResponse();
     }
 };
@@ -436,7 +438,7 @@ function GetWeatherConditionSpeech(code) {
     return speech;
 }
 //////////////////////////////////////////////////////////////////////////
-// SPEECH Helper
+// News Helper
 //////////////////////////////////////////////////////////////////////////
 function GetNewsSpeech(newsData) {
     var speech = "";
@@ -452,7 +454,7 @@ function GetNewsSpeech(newsData) {
 function GetToBringItemSpeech(data) {
     console.log("In GetToBringItem");
     var numberOfList = data.GetNumberOfList();
-    var alwaysList = GetList(data, "always");
+    var alwaysList = data.GetList(Constant_1.Always);
     if (numberOfList === 1) {
         console.log("Just always");
         if (alwaysList.NumberOfItem() === 0) {
@@ -475,104 +477,6 @@ function GetToBringItemSpeech(data) {
         }
     }
 }
-function GetList(data, listName) {
-    return data.ToBringItemLists.get(listName);
-}
-// These are simple operation but import for maintainent
-// IF there is a change in database document field name, we only need to change at 1 location
-// function DoesListExist(data: Alexa.HandlerInput, listName: [any]) {
-// 	console.log("In DoesListExist");
-// 	console.log("List name: " + listName);
-// 	console.log("Attributes: ");
-// 	console.log(data.attributes);
-// 	return (listName in data.attributes.toBringList);
-// }
-// function NumberOfList(data: Alexa.HandlerInput) : number {
-// 	console.log("In NumberOfList");
-// 	console.log("Num of list: " + Object.keys(data.attributesManager. .toBringList).length);
-// 	return Object.keys(data.attributes.toBringList).length;
-// }
-// function RemoveList(data: Alexa.HandlerInput, listName) {
-// 	console.log("In RemoveList");
-// 	console.log(data.attributes);
-// 	if (DoesListExist(data, listName)) {
-// 		delete data.attributes.toBringList[listName];
-// 		return true;
-// 	} else {
-// 		console.log("List not exist");
-// 		return false;
-// 	}
-// }
-// function EmptyList(data: Alexa.HandlerInput, listName) {
-// 	console.log("In EmptyList");
-// 	console.log(data.attributes);
-// 	if (DoesListExist(data, listName)) {
-// 		data.attributes.toBringList[listName] = [];
-// 		return true;
-// 	} else {
-// 		console.log("List not exist");
-// 		return false;
-// 	}
-// }
-// function AddItemToList(data: Alexa.HandlerInput, listName, itemName) {
-// 	console.log("In AddItemToList");
-// 	console.log(data.attributes);
-// 	if (!DoesListExist(data, listName)) {
-// 		console.log("List not exist");
-// 		return -1;
-// 	}
-// 	console.log("List exist");
-// 	if (data.attributes.toBringList[listName].includes(itemName)) {
-// 		console.log("Item exist");
-// 		return 0;
-// 	} else {
-// 		data.attributes.toBringList[listName].push(itemName);
-// 		console.log("Item added");
-// 		return 1;
-// 	}
-// }
-// function RemoveItemFromList(data: Alexa.HandlerInput, listName, itemName) {
-// 	console.log("In AddItemToList");
-// 	console.log(data.attributes);
-// 	if (!DoesListExist(data, listName)) {
-// 		console.log("List not exist");
-// 		return -1;
-// 	}
-// 	if (data.attributes.toBringList[listName].includes(itemName)) {
-// 		return 0;
-// 	} else {
-// 		const index = data.attributes.toBringList[listName].indexOf(itemName);
-// 		data.attributes.toBringList[listName].slice(index, 1);
-// 		return 1;
-// 	}
-// }
-// function IsSlotValueFilled(data: Alexa.HandlerInput, slotName) {
-// 	console.log("In IsSlotValueFilled");
-// 	console.log(data.event.request.intent.slots);
-// 	console.log(slotName);
-// 	return data.event.request.intent.slots[slotName].value;
-// 	// For testing purpose
-// 	// if (data.event.request.intent.slots[slotName].value) {
-// 	// 	console.log("Slot is filled");
-// 	// 	return true;
-// 	// } else {
-// 	// 	console.log("Slot is not filled");
-// 	// 	return false;
-// 	// }
-// }
-// function GetSlotValue(data: Alexa.HandlerInput, slotName) {
-// 	console.log("In GetSlotValue");
-// 	if (IsSlotValueFilled(data, slotName)) {
-// 		return data.event.request.intent.slots[slotName].value;
-// 	} else {
-// 		return null;
-// 	}
-// }
-// function SetSlotValue(data: Alexa.HandlerInput, slotName, value) {
-// 	console.log("In SetSlotValue");
-// 	data.event.request.intent.slots[slotName].value = value;
-// }
-// Class
 // Lambda init
 var persistenceAdapterConfig = {
     tableName: "AdventureAssistant",
