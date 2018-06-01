@@ -231,6 +231,32 @@ var RemoveItemFromListIntentHandler = {
         });
     }
 };
+var GetItemFromListIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'GetItemFromListIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var speechText, user, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        speechText = "";
+                        _a = Class_1.User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                    case 1:
+                        user = new (_a.apply(Class_1.User, [void 0, _b.sent()]))();
+                        speechText += GetItemFromListSpeech(user);
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(speechText)
+                                .withShouldEndSession(false)
+                                .getResponse()];
+                }
+            });
+        });
+    }
+};
 var HelpIntentHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -477,6 +503,32 @@ function GetToBringItemSpeech(data) {
         }
     }
 }
+function GetItemFromListSpeech(data) {
+    console.log("In GetToBringItem");
+    var numberOfList = data.GetNumberOfList();
+    var alwaysList = data.GetList(Constant_1.Always);
+    if (numberOfList === 1) {
+        console.log("Just always");
+        if (alwaysList.NumberOfItem() === 0) {
+            console.log("Empty");
+            return "You have not told me what item you would like to bring everytime you go out. " +
+                "You can add item that you want to bring by saying add to bring item. ";
+        }
+        else {
+            console.log("Not Empty");
+            var speech = 'You have ';
+            var itemList = alwaysList.GetList();
+            for (var _i = 0, itemList_2 = itemList; _i < itemList_2.length; _i++) {
+                var item = itemList_2[_i];
+                speech += item + ", ";
+            }
+            // Remove the last ", " and add a period
+            speech = speech.substr(0, speech.length - 2);
+            speech += " in your list. ";
+            return speech;
+        }
+    }
+}
 // Lambda init
 var persistenceAdapterConfig = {
     tableName: "AdventureAssistant",
@@ -485,7 +537,7 @@ var persistenceAdapterConfig = {
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
-    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
+    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();

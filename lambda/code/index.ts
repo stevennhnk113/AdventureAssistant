@@ -180,6 +180,25 @@ const RemoveItemFromListIntentHandler = {
 	}
 };
 
+const GetItemFromListIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'GetItemFromListIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		let speechText = "";
+
+		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
+
+		speechText += GetItemFromListSpeech(user);
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.withShouldEndSession(false)
+			.getResponse();
+	}
+};
+
 const HelpIntentHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
 		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -221,7 +240,6 @@ const SessionEndedRequestHandler = {
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
 		//any cleanup logic goes here
-
 
 		return handlerInput.responseBuilder.getResponse();
 	}
@@ -451,6 +469,37 @@ function GetToBringItemSpeech(data: User) {
 	}
 }
 
+function GetItemFromListSpeech(data: User) {
+	console.log("In GetToBringItem");
+
+	var numberOfList = data.GetNumberOfList();
+	var alwaysList = data.GetList(Always);
+
+	if (numberOfList === 1) {
+		console.log("Just always");
+		if (alwaysList.NumberOfItem() === 0) {
+			console.log("Empty");
+			return "You have not told me what item you would like to bring everytime you go out. " +
+				"You can add item that you want to bring by saying add to bring item. ";
+		} else {
+			console.log("Not Empty");
+			let speech = 'You have ';
+			let itemList = alwaysList.GetList();
+
+			for(let item of itemList)
+			{
+				speech += item + ", ";
+			}
+
+			// Remove the last ", " and add a period
+			speech = speech.substr(0, speech.length - 2);
+			speech += " in your list. ";
+
+			return speech;
+		}
+	}
+}
+
 // Lambda init
 var persistenceAdapterConfig = {
 	tableName: "AdventureAssistant",
@@ -468,6 +517,7 @@ exports.handler = Alexa.SkillBuilders.standard()
 		GoingOutIntentHandler,
 		AddItemToListIntentHandler,
 		RemoveItemFromListIntentHandler,
+		GetItemFromListIntentHandler,
 		HelpIntentHandler,
 		CancelAndStopIntentHandler,
 		SessionEndedRequestHandler)
