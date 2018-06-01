@@ -139,7 +139,7 @@ var GoingOutIntentHandler = {
                         speechText += "Have fun";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
-                                .withSimpleCard('Have fun', speechText)
+                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });
@@ -182,7 +182,7 @@ var AddItemToListIntentHandler = {
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
-                                .withSimpleCard('Have fun', speechText)
+                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });
@@ -200,7 +200,7 @@ var RemoveItemFromListIntentHandler = {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        speechText = '<speak>';
+                        speechText = "";
                         _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
@@ -208,7 +208,6 @@ var RemoveItemFromListIntentHandler = {
                         requestEnvelope = handlerInput.requestEnvelope;
                         intentRequest = requestEnvelope.request;
                         if (intentRequest.intent.slots[Constant_1.ItemType].value == null) {
-                            speechText += "<speak>";
                             return [2 /*return*/, handlerInput.responseBuilder
                                     .addDelegateDirective()
                                     .getResponse()];
@@ -224,10 +223,9 @@ var RemoveItemFromListIntentHandler = {
                             handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
-                        speechText += "<speak>";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
-                                .withSimpleCard('Have fun', speechText)
+                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });

@@ -89,7 +89,7 @@ const GoingOutIntentHandler = {
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withSimpleCard('Have fun', speechText)
+			.withShouldEndSession(false)
 			.getResponse();
 	}
 };
@@ -133,7 +133,7 @@ const AddItemToListIntentHandler = {
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withSimpleCard('Have fun', speechText)
+			.withShouldEndSession(false)
 			.getResponse();
 	}
 };
@@ -144,7 +144,7 @@ const RemoveItemFromListIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'RemoveItemFromListIntent';
 	},
 	async handle(handlerInput: Alexa.HandlerInput) {
-		let speechText = '<speak>';
+		let speechText = "";
 
 		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 		const { requestEnvelope } = handlerInput;
@@ -152,7 +152,6 @@ const RemoveItemFromListIntentHandler = {
 		
 		if(intentRequest.intent.slots[ItemType].value == null)
 		{
-			speechText += "<speak>";
 			return handlerInput.responseBuilder
 			.addDelegateDirective()
 			.getResponse();
@@ -175,11 +174,9 @@ const RemoveItemFromListIntentHandler = {
 			handlerInput.attributesManager.savePersistentAttributes();
 		}
 
-		speechText += "<speak>";
-
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withSimpleCard('Have fun', speechText)
+			.withShouldEndSession(false)
 			.getResponse();
 	}
 };
