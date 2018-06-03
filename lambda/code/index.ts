@@ -59,9 +59,9 @@ const GoingOutIntentHandler = {
 		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 
 		// Get news
-		newsSpeech += "Today news. ";
-		newsSpeech += await GetNews(true);
-		speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+		// newsSpeech += "Today news. ";
+		// newsSpeech += await GetNews(true);
+		// speechText += SpeechHelper.AddBreak(newsSpeech, 1);
 
 		// Get Weather
 		weatherSpeech += "About the weather. ";
@@ -80,7 +80,6 @@ const GoingOutIntentHandler = {
 		speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
 
 		// Get to bring item
-		toBringItemSpeech += "Also. Don't for get to bring your ";
 		toBringItemSpeech += GetToBringItemSpeech(user);
 		speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
 
@@ -452,7 +451,7 @@ function GetToBringItemSpeech(data: User) {
 				"You can add item that you want to bring by saying add to bring item. ";
 		} else {
 			console.log("Not Empty");
-			let speech = '';
+			let speech = "Also. Don't for get to bring your ";
 			let itemList = alwaysList.GetList();
 
 			for(let item of itemList)

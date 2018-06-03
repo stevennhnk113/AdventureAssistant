@@ -91,9 +91,9 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, _b, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         speechText = '';
                         weatherSpeech = '';
@@ -102,37 +102,33 @@ var GoingOutIntentHandler = {
                         _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(Class_1.User, [void 0, _d.sent()]))();
+                        user = new (_a.apply(Class_1.User, [void 0, _c.sent()]))();
                         // Get news
-                        newsSpeech += "Today news. ";
-                        _b = newsSpeech;
-                        return [4 /*yield*/, GetNews(true)];
-                    case 2:
-                        newsSpeech = _b + _d.sent();
-                        speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+                        // newsSpeech += "Today news. ";
+                        // newsSpeech += await GetNews(true);
+                        // speechText += SpeechHelper.AddBreak(newsSpeech, 1);
                         // Get Weather
                         weatherSpeech += "About the weather. ";
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 6];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 5];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
-                    case 3:
-                        address = _d.sent();
-                        if (!(address.postalCode != undefined)) return [3 /*break*/, 5];
-                        _c = weatherSpeech;
+                    case 2:
+                        address = _c.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 4];
+                        _b = weatherSpeech;
                         return [4 /*yield*/, GetWeather(address.postalCode)];
-                    case 4:
-                        weatherSpeech = _c + _d.sent();
-                        _d.label = 5;
-                    case 5: return [3 /*break*/, 7];
-                    case 6:
+                    case 3:
+                        weatherSpeech = _b + _c.sent();
+                        _c.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
                         console.log("service clinent is null");
-                        _d.label = 7;
-                    case 7:
+                        _c.label = 6;
+                    case 6:
                         speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
                         // Get to bring item
-                        toBringItemSpeech += "Also. Don't for get to bring your ";
                         toBringItemSpeech += GetToBringItemSpeech(user);
                         speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
                         speechText += "Have fun";
@@ -490,7 +486,7 @@ function GetToBringItemSpeech(data) {
         }
         else {
             console.log("Not Empty");
-            var speech = '';
+            var speech = "Also. Don't for get to bring your ";
             var itemList = alwaysList.GetList();
             for (var _i = 0, itemList_1 = itemList; _i < itemList_1.length; _i++) {
                 var item = itemList_1[_i];
