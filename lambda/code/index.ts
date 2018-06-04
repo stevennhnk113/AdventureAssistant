@@ -59,9 +59,9 @@ const GoingOutIntentHandler = {
 		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 
 		// Get news
-		// newsSpeech += "Today news. ";
-		// newsSpeech += await GetNews(true);
-		// speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+		newsSpeech += "Today news. ";
+		newsSpeech += await GetNews(true);
+		speechText += SpeechHelper.AddBreak(newsSpeech, 1);
 
 		// Get Weather
 		weatherSpeech += "About the weather. ";
@@ -427,7 +427,7 @@ function GetWeatherConditionSpeech(code: number) {
 function GetNewsSpeech(newsData: any) {
 	var speech = ""
 	for (let news of newsData.articles) {
-		speech += "From " + news.source.name + ": " + news.description + " ";
+		speech += "From " + news.source.name + ": " + news.description + ". ";
 	}
 
 	return speech;
