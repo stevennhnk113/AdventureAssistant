@@ -27,7 +27,10 @@ const LaunchRequestHandler = {
 		var result = await handlerInput.attributesManager.getPersistentAttributes();
 		
 		if(Object.keys(result).length === 0){
-			speechText += 'Welcome to Adventure Assistant!';
+			speechText += 	"Welcome to Adventure Assistant! " +
+							"Say I am leaving before you going out and I will " +
+							"tell you about the news, the weather, and remind you what to bring before you leave the house!" + 
+							"Now say I am leaving";
 
 			let newUser = new User();
 			newUser.InitializeUser();
@@ -36,7 +39,7 @@ const LaunchRequestHandler = {
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
 		} else {
-			speechText += "Welcome back, how can I help you today?"
+			speechText += "Hi there, are you leaving for an adventure?";
 		}
 
 		return handlerInput.responseBuilder
@@ -229,6 +232,34 @@ const CancelAndStopIntentHandler = {
 		return handlerInput.responseBuilder
 			.speak(speechText)
 			.withSimpleCard('Goodbye', speechText)
+			.getResponse();
+	}
+};
+
+const YesIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent');
+	},
+	handle(handlerInput: Alexa.HandlerInput) {
+		const speechText = 'Yes!';
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.getResponse();
+	}
+};
+
+const NoIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent');
+	},
+	handle(handlerInput: Alexa.HandlerInput) {
+		const speechText = 'No!';
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
 			.getResponse();
 	}
 };
@@ -519,6 +550,8 @@ exports.handler = Alexa.SkillBuilders.standard()
 		GetItemFromListIntentHandler,
 		HelpIntentHandler,
 		CancelAndStopIntentHandler,
+		YesIntentHandler,
+		NoIntentHandler,
 		SessionEndedRequestHandler)
 	.withTableName("AdventureAssistant")
 	.withAutoCreateTable(true)

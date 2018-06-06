@@ -65,7 +65,10 @@ var LaunchRequestHandler = {
                     case 1:
                         result = _a.sent();
                         if (Object.keys(result).length === 0) {
-                            speechText += 'Welcome to Adventure Assistant!';
+                            speechText += "Welcome to Adventure Assistant! " +
+                                "Say I am leaving before you going out and I will " +
+                                "tell you about the news, the weather, and remind you what to bring before you leave the house!" +
+                                "Now say I am leaving";
                             newUser = new Class_1.User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
@@ -73,7 +76,7 @@ var LaunchRequestHandler = {
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
                         else {
-                            speechText += "Welcome back, how can I help you today?";
+                            speechText += "Hi there, are you leaving for an adventure?";
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
@@ -284,6 +287,30 @@ var CancelAndStopIntentHandler = {
         return handlerInput.responseBuilder
             .speak(speechText)
             .withSimpleCard('Goodbye', speechText)
+            .getResponse();
+    }
+};
+var YesIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent');
+    },
+    handle: function (handlerInput) {
+        var speechText = 'Yes!';
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .getResponse();
+    }
+};
+var NoIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent');
+    },
+    handle: function (handlerInput) {
+        var speechText = 'No!';
+        return handlerInput.responseBuilder
+            .speak(speechText)
             .getResponse();
     }
 };
@@ -536,7 +563,7 @@ var persistenceAdapterConfig = {
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
-    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, SessionEndedRequestHandler)
+    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, YesIntentHandler, NoIntentHandler, SessionEndedRequestHandler)
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();
