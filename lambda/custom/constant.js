@@ -10,3 +10,11 @@ var CRUDResult;
     CRUDResult["Exist"] = "Exist";
     CRUDResult["NotExist"] = "Not Exist";
 })(CRUDResult = exports.CRUDResult || (exports.CRUDResult = {}));
+var Handler;
+(function (Handler) {
+    Handler["LaunchRequestHandler"] = "LaunchRequestHandler";
+    Handler["GoingOutIntentHandler"] = "GoingOutIntentHandler";
+    Handler["AddItemToListIntentHandler"] = "AddItemToListIntentHandler";
+    Handler["RemoveItemFromListIntentHandler"] = "RemoveItemFromListIntentHandler";
+    Handler["GetItemFromListIntentHandler"] = "GetItemFromListIntentHandler";
+})(Handler = exports.Handler || (exports.Handler = {}));

@@ -7,7 +7,7 @@ import { stringify } from 'querystring';
 import { INSPECT_MAX_BYTES } from 'buffer';
 
 import { User, ItemList } from "./Class";
-import { Always, ItemType, CRUDResult } from "./Constant";
+import { Always, ItemType, CRUDResult, Handler } from "./Constant";
 
 // Helper
 import * as SpeechHelper from "./SpeechHelper";
@@ -30,7 +30,7 @@ const LaunchRequestHandler = {
 			speechText += 	"Welcome to Adventure Assistant! " +
 							"Say I am leaving before you going out and I will " +
 							"tell you about the news, the weather, and remind you what to bring before you leave the house!" + 
-							"Now say I am leaving";
+							"Now try saying I am leaving";
 
 			let newUser = new User();
 			newUser.InitializeUser();
@@ -38,8 +38,25 @@ const LaunchRequestHandler = {
 
 			handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
 			handlerInput.attributesManager.savePersistentAttributes();
+
+			handlerInput.attributesManager.setSessionAttributes(
+				{
+					IsFirstSession: true,
+					YesHandler: Handler.GoingOutIntentHandler,
+					NoHandler: null
+				}
+			);
+
 		} else {
 			speechText += "Hi there, are you leaving for an adventure?";
+
+			handlerInput.attributesManager.setSessionAttributes(
+				{
+					IsFirstSession: false,
+					YesHandler: Handler.GoingOutIntentHandler,
+					NoHandler: null
+				}
+			);
 		}
 
 		return handlerInput.responseBuilder
@@ -122,7 +139,7 @@ const AddItemToListIntentHandler = {
 
 		if(result == CRUDResult.Exist)
 		{
-			speechText += "You already have " + item + " in your to bring item";
+			speechText += "You already have " + item + " in your to bring item.";
 		}
 		else
 		{
@@ -131,6 +148,8 @@ const AddItemToListIntentHandler = {
 			handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
 			handlerInput.attributesManager.savePersistentAttributes();
 		}
+
+		speechText += " What else can I help?";
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -175,6 +194,8 @@ const RemoveItemFromListIntentHandler = {
 			handlerInput.attributesManager.savePersistentAttributes();
 		}
 
+		speechText += " What else can I help?";
+
 		return handlerInput.responseBuilder
 			.speak(speechText)
 			.withShouldEndSession(false)
@@ -193,6 +214,8 @@ const GetItemFromListIntentHandler = {
 		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 
 		speechText += GetItemFromListSpeech(user);
+
+		speechText += " What else can I help?";
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
@@ -244,9 +267,22 @@ const YesIntentHandler = {
 	handle(handlerInput: Alexa.HandlerInput) {
 		const speechText = 'Yes!';
 
-		return handlerInput.responseBuilder
-			.speak(speechText)
-			.getResponse();
+		let sessionAttributes =  handlerInput.attributesManager.getSessionAttributes();
+
+		switch(sessionAttributes.YesHandler)
+		{
+			case Handler.GoingOutIntentHandler:
+				GoingOutIntentHandler.handle(handlerInput);
+				break;
+			default:
+				break;
+		}
+	
+		return sessionAttributes.YesHandler(handlerInput);
+
+		// return handlerInput.responseBuilder
+		// 	.speak(speechText)
+		// 	.getResponse();
 	}
 };
 

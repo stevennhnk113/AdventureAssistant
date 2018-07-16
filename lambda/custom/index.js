@@ -68,15 +68,25 @@ var LaunchRequestHandler = {
                             speechText += "Welcome to Adventure Assistant! " +
                                 "Say I am leaving before you going out and I will " +
                                 "tell you about the news, the weather, and remind you what to bring before you leave the house!" +
-                                "Now say I am leaving";
+                                "Now try saying I am leaving";
                             newUser = new Class_1.User();
                             newUser.InitializeUser();
                             initialUserAttributes = newUser.GetJson();
                             handlerInput.attributesManager.setPersistentAttributes(initialUserAttributes);
                             handlerInput.attributesManager.savePersistentAttributes();
+                            handlerInput.attributesManager.setSessionAttributes({
+                                IsFirstSession: true,
+                                YesHandler: Constant_1.Handler.GoingOutIntentHandler,
+                                NoHandler: null
+                            });
                         }
                         else {
                             speechText += "Hi there, are you leaving for an adventure?";
+                            handlerInput.attributesManager.setSessionAttributes({
+                                IsFirstSession: false,
+                                YesHandler: Constant_1.Handler.GoingOutIntentHandler,
+                                NoHandler: null
+                            });
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
@@ -174,13 +184,14 @@ var AddItemToListIntentHandler = {
                         item = intentRequest.intent.slots[Constant_1.ItemType].value;
                         result = list.AddItem(item);
                         if (result == Constant_1.CRUDResult.Exist) {
-                            speechText += "You already have " + item + " in your to bring item";
+                            speechText += "You already have " + item + " in your to bring item.";
                         }
                         else {
                             speechText += item + " is added to your list.";
                             handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
+                        speechText += " What else can I help?";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .withShouldEndSession(false)
@@ -224,6 +235,7 @@ var RemoveItemFromListIntentHandler = {
                             handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
                             handlerInput.attributesManager.savePersistentAttributes();
                         }
+                        speechText += " What else can I help?";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .withShouldEndSession(false)
@@ -250,6 +262,7 @@ var GetItemFromListIntentHandler = {
                     case 1:
                         user = new (_a.apply(Class_1.User, [void 0, _b.sent()]))();
                         speechText += GetItemFromListSpeech(user);
+                        speechText += " What else can I help?";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .withShouldEndSession(false)
@@ -297,9 +310,18 @@ var YesIntentHandler = {
     },
     handle: function (handlerInput) {
         var speechText = 'Yes!';
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .getResponse();
+        var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        switch (sessionAttributes.YesHandler) {
+            case Constant_1.Handler.GoingOutIntentHandler:
+                GoingOutIntentHandler.handle(handlerInput);
+                break;
+            default:
+                break;
+        }
+        return sessionAttributes.YesHandler(handlerInput);
+        // return handlerInput.responseBuilder
+        // 	.speak(speechText)
+        // 	.getResponse();
     }
 };
 var NoIntentHandler = {
