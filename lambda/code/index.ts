@@ -43,7 +43,7 @@ const LaunchRequestHandler = {
 				{
 					IsFirstSession: true,
 					YesHandler: Handler.GoingOutIntentHandler,
-					NoHandler: null
+					NoHandler: Handler.GoodByeIntentHandler
 				}
 			);
 
@@ -54,7 +54,7 @@ const LaunchRequestHandler = {
 				{
 					IsFirstSession: false,
 					YesHandler: Handler.GoingOutIntentHandler,
-					NoHandler: null
+					NoHandler: Handler.GoodByeIntentHandler
 				}
 			);
 		}
@@ -107,7 +107,6 @@ const GoingOutIntentHandler = {
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
-			.withShouldEndSession(false)
 			.getResponse();
 	}
 };
@@ -265,24 +264,19 @@ const YesIntentHandler = {
 			&& (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent');
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'Yes!';
-
 		let sessionAttributes =  handlerInput.attributesManager.getSessionAttributes();
 
 		switch(sessionAttributes.YesHandler)
 		{
 			case Handler.GoingOutIntentHandler:
-				GoingOutIntentHandler.handle(handlerInput);
-				break;
+				return GoingOutIntentHandler.handle(handlerInput);
 			default:
-				break;
-		}
-	
-		return sessionAttributes.YesHandler(handlerInput);
+				var speechText = "Sorry! We encounter a problem."
 
-		// return handlerInput.responseBuilder
-		// 	.speak(speechText)
-		// 	.getResponse();
+				return handlerInput.responseBuilder
+				.speak(speechText)
+				.getResponse();
+		}
 	}
 };
 
@@ -308,6 +302,20 @@ const SessionEndedRequestHandler = {
 		//any cleanup logic goes here
 
 		return handlerInput.responseBuilder.getResponse();
+	}
+};
+
+// Internal Handler
+const GoodByeIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+	},
+	handle(handlerInput: Alexa.HandlerInput) {
+		const speechText = 'GoodBye!';
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.getResponse();
 	}
 };
 

@@ -16,5 +16,6 @@ export enum Handler
 	GoingOutIntentHandler = "GoingOutIntentHandler",
 	AddItemToListIntentHandler = "AddItemToListIntentHandler",
 	RemoveItemFromListIntentHandler = "RemoveItemFromListIntentHandler",
-	GetItemFromListIntentHandler = "GetItemFromListIntentHandler"
+	GetItemFromListIntentHandler = "GetItemFromListIntentHandler",
+	GoodByeIntentHandler = "GoodByeIntentHandler"
 }

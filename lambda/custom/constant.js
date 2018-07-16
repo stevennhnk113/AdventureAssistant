@@ -17,4 +17,5 @@ var Handler;
     Handler["AddItemToListIntentHandler"] = "AddItemToListIntentHandler";
     Handler["RemoveItemFromListIntentHandler"] = "RemoveItemFromListIntentHandler";
     Handler["GetItemFromListIntentHandler"] = "GetItemFromListIntentHandler";
+    Handler["GoodByeIntentHandler"] = "GoodByeIntentHandler";
 })(Handler = exports.Handler || (exports.Handler = {}));

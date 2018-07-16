@@ -77,7 +77,7 @@ var LaunchRequestHandler = {
                             handlerInput.attributesManager.setSessionAttributes({
                                 IsFirstSession: true,
                                 YesHandler: Constant_1.Handler.GoingOutIntentHandler,
-                                NoHandler: null
+                                NoHandler: Constant_1.Handler.GoodByeIntentHandler
                             });
                         }
                         else {
@@ -85,7 +85,7 @@ var LaunchRequestHandler = {
                             handlerInput.attributesManager.setSessionAttributes({
                                 IsFirstSession: false,
                                 YesHandler: Constant_1.Handler.GoingOutIntentHandler,
-                                NoHandler: null
+                                NoHandler: Constant_1.Handler.GoodByeIntentHandler
                             });
                         }
                         return [2 /*return*/, handlerInput.responseBuilder
@@ -150,7 +150,6 @@ var GoingOutIntentHandler = {
                         speechText += "Have fun";
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
-                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });
@@ -309,19 +308,16 @@ var YesIntentHandler = {
             && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent');
     },
     handle: function (handlerInput) {
-        var speechText = 'Yes!';
         var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
         switch (sessionAttributes.YesHandler) {
             case Constant_1.Handler.GoingOutIntentHandler:
-                GoingOutIntentHandler.handle(handlerInput);
-                break;
+                return GoingOutIntentHandler.handle(handlerInput);
             default:
-                break;
+                var speechText = "Sorry! We encounter a problem.";
+                return handlerInput.responseBuilder
+                    .speak(speechText)
+                    .getResponse();
         }
-        return sessionAttributes.YesHandler(handlerInput);
-        // return handlerInput.responseBuilder
-        // 	.speak(speechText)
-        // 	.getResponse();
     }
 };
 var NoIntentHandler = {
@@ -343,6 +339,18 @@ var SessionEndedRequestHandler = {
     handle: function (handlerInput) {
         //any cleanup logic goes here
         return handlerInput.responseBuilder.getResponse();
+    }
+};
+// Internal Handler
+var GoodByeIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+    },
+    handle: function (handlerInput) {
+        var speechText = 'GoodBye!';
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .getResponse();
     }
 };
 //////////////////////////////////////////////////////////////////////////
