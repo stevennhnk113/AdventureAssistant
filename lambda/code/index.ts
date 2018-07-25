@@ -157,6 +157,37 @@ const AddItemToListIntentHandler = {
 	}
 };
 
+const EmptyListIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'EmptyListIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		let speechText = "";
+
+		const user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
+		const { requestEnvelope } = handlerInput;
+		const intentRequest = requestEnvelope.request as IntentRequest;
+		
+		if(user.EmptyList(Always))
+		{
+			speechText += "I emptied your list. Do you need anything else?";
+
+			handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+			handlerInput.attributesManager.savePersistentAttributes();
+		}
+		else
+		{
+			speechText += "List does not exist";
+		}
+
+		return handlerInput.responseBuilder
+			.speak(speechText)
+			.withShouldEndSession(false)
+			.getResponse();
+	}
+};
+
 const RemoveItemFromListIntentHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
 		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -286,11 +317,19 @@ const NoIntentHandler = {
 			&& (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent');
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'No!';
+		let sessionAttributes =  handlerInput.attributesManager.getSessionAttributes();
 
-		return handlerInput.responseBuilder
-			.speak(speechText)
-			.getResponse();
+		switch(sessionAttributes.NoHandler)
+		{
+			case Handler.GoodByeIntentHandler:
+				return GoodByeIntentHandler.handle(handlerInput);
+			default:
+				var speechText = "Sorry! We encounter a problem.";
+
+				return handlerInput.responseBuilder
+				.speak(speechText)
+				.getResponse();
+		}
 	}
 };
 
@@ -329,14 +368,13 @@ function GetNews(isGetNews: boolean) : Promise<string> {
 
 		var speech = "";
 		if (!isGetNews) {
-			console.log("No GetNews");
 			resolve(speech);
 		}
 
 		newsapi.v2.topHeadlines({
 			language: 'en',
 			country: 'us', 
-			pageSize: 2
+			pageSize: 10
 		}).then((data:any)  => {
 			console.log(data);
 			if (data.status !== "ok") {
@@ -500,9 +538,14 @@ function GetWeatherConditionSpeech(code: number) {
 // News Helper
 //////////////////////////////////////////////////////////////////////////
 function GetNewsSpeech(newsData: any) {
-	var speech = ""
+	var speech = "";
+	var count = 0;
 	for (let news of newsData.articles) {
+		if(count == 3) break;
+		if(news.description == null || news.description === "") continue;
+		
 		speech += "From " + news.source.name + ": " + news.description + ". ";
+		count++;
 	}
 
 	return speech;
@@ -592,6 +635,7 @@ exports.handler = Alexa.SkillBuilders.standard()
 		AddItemToListIntentHandler,
 		RemoveItemFromListIntentHandler,
 		GetItemFromListIntentHandler,
+		EmptyListIntentHandler,
 		HelpIntentHandler,
 		CancelAndStopIntentHandler,
 		YesIntentHandler,

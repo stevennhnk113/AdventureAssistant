@@ -200,6 +200,41 @@ var AddItemToListIntentHandler = {
         });
     }
 };
+var EmptyListIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'EmptyListIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var speechText, user, _a, requestEnvelope, intentRequest;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        speechText = "";
+                        _a = Class_1.User.bind;
+                        return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
+                    case 1:
+                        user = new (_a.apply(Class_1.User, [void 0, _b.sent()]))();
+                        requestEnvelope = handlerInput.requestEnvelope;
+                        intentRequest = requestEnvelope.request;
+                        if (user.EmptyList(Constant_1.Always)) {
+                            speechText += "I emptied your list. Do you need anything else?";
+                            handlerInput.attributesManager.setPersistentAttributes(user.GetJson());
+                            handlerInput.attributesManager.savePersistentAttributes();
+                        }
+                        else {
+                            speechText += "List does not exist";
+                        }
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(speechText)
+                                .withShouldEndSession(false)
+                                .getResponse()];
+                }
+            });
+        });
+    }
+};
 var RemoveItemFromListIntentHandler = {
     canHandle: function (handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -326,10 +361,16 @@ var NoIntentHandler = {
             && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent');
     },
     handle: function (handlerInput) {
-        var speechText = 'No!';
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .getResponse();
+        var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        switch (sessionAttributes.NoHandler) {
+            case Constant_1.Handler.GoodByeIntentHandler:
+                return GoodByeIntentHandler.handle(handlerInput);
+            default:
+                var speechText = "Sorry! We encounter a problem.";
+                return handlerInput.responseBuilder
+                    .speak(speechText)
+                    .getResponse();
+        }
     }
 };
 var SessionEndedRequestHandler = {
@@ -361,13 +402,12 @@ function GetNews(isGetNews) {
         console.log("In GetNews");
         var speech = "";
         if (!isGetNews) {
-            console.log("No GetNews");
             resolve(speech);
         }
         newsapi.v2.topHeadlines({
             language: 'en',
             country: 'us',
-            pageSize: 2
+            pageSize: 10
         }).then(function (data) {
             console.log(data);
             if (data.status !== "ok") {
@@ -524,9 +564,15 @@ function GetWeatherConditionSpeech(code) {
 //////////////////////////////////////////////////////////////////////////
 function GetNewsSpeech(newsData) {
     var speech = "";
+    var count = 0;
     for (var _i = 0, _a = newsData.articles; _i < _a.length; _i++) {
         var news = _a[_i];
+        if (count == 3)
+            break;
+        if (news.description == null || news.description === "")
+            continue;
         speech += "From " + news.source.name + ": " + news.description + ". ";
+        count++;
     }
     return speech;
 }
@@ -593,7 +639,7 @@ var persistenceAdapterConfig = {
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
-    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, YesIntentHandler, NoIntentHandler, SessionEndedRequestHandler)
+    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, EmptyListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, YesIntentHandler, NoIntentHandler, SessionEndedRequestHandler)
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();

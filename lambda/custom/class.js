@@ -30,6 +30,17 @@ var User = /** @class */ (function () {
             return null;
         }
     };
+    // False: list not exist
+    // True: success
+    User.prototype.EmptyList = function (listName) {
+        if (this.ToBringItemLists.has(listName)) {
+            this.ToBringItemLists.get(listName).EmptyList();
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
     User.prototype.GetNumberOfList = function () {
         if (this.ToBringItemLists == null)
             return -1;
@@ -86,6 +97,9 @@ var ItemList = /** @class */ (function () {
     };
     ItemList.prototype.GetList = function () {
         return Array.from(this.Items);
+    };
+    ItemList.prototype.EmptyList = function () {
+        this.Items.clear();
     };
     ItemList.prototype.GetJson = function () {
         var tempArray = new Array();

@@ -38,6 +38,20 @@ export class User {
 		}
 	}
 
+	// False: list not exist
+	// True: success
+	EmptyList(listName: string) : boolean {
+		if(this.ToBringItemLists.has(listName))
+		{
+			this.ToBringItemLists.get(listName).EmptyList();
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	GetNumberOfList() : number {
 		if(this.ToBringItemLists == null) return -1;
 		else return this.ToBringItemLists.size;
@@ -109,6 +123,11 @@ export class ItemList {
 	GetList() : Array<string>
 	{
 		return Array.from(this.Items);
+	}
+
+	EmptyList() : void
+	{
+		this.Items.clear();
 	}
 
 	GetJson() : any {
