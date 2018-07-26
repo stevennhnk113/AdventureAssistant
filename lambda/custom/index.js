@@ -67,7 +67,7 @@ var LaunchRequestHandler = {
                         if (Object.keys(result).length === 0) {
                             speechText += "Welcome to Adventure Assistant! " +
                                 "Say I am leaving before you going out and I will " +
-                                "tell you about the news, the weather, and remind you what to bring before you leave the house!" +
+                                "tell you about the news, the weather, and remind you what to bring before you leave the house! " +
                                 "Now try saying I am leaving";
                             newUser = new Class_1.User();
                             newUser.InitializeUser();
@@ -104,9 +104,9 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, _b, requestEnvelope, serviceClientFactory, deviceId, deviceAddressServiceClient, address, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, _b, requestEnvelope, serviceClientFactory, consentToken, deviceId, deviceAddressServiceClient, address, _c, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         speechText = '';
                         weatherSpeech = '';
@@ -115,34 +115,45 @@ var GoingOutIntentHandler = {
                         _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(Class_1.User, [void 0, _d.sent()]))();
+                        user = new (_a.apply(Class_1.User, [void 0, _e.sent()]))();
                         // Get news
                         newsSpeech += "Today news. ";
                         _b = newsSpeech;
                         return [4 /*yield*/, GetNews(true)];
                     case 2:
-                        newsSpeech = _b + _d.sent();
+                        newsSpeech = _b + _e.sent();
                         speechText += SpeechHelper.AddBreak(newsSpeech, 1);
                         // Get Weather
                         weatherSpeech += "About the weather. ";
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
+                        consentToken = requestEnvelope.context.System.user.permissions && requestEnvelope.context.System.user.permissions.consentToken;
+                        if (!!consentToken) return [3 /*break*/, 3];
+                        weatherSpeech = "I do not have the permission to check your current location for the weather.";
+                        return [3 /*break*/, 10];
+                    case 3:
+                        _e.trys.push([3, 9, , 10]);
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 6];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 7];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
-                    case 3:
-                        address = _d.sent();
-                        if (!(address.postalCode != undefined)) return [3 /*break*/, 5];
+                    case 4:
+                        address = _e.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 6];
                         _c = weatherSpeech;
                         return [4 /*yield*/, GetWeather(address.postalCode)];
-                    case 4:
-                        weatherSpeech = _c + _d.sent();
-                        _d.label = 5;
-                    case 5: return [3 /*break*/, 7];
-                    case 6:
-                        console.log("service clinent is null");
-                        _d.label = 7;
+                    case 5:
+                        weatherSpeech = _c + _e.sent();
+                        _e.label = 6;
+                    case 6: return [3 /*break*/, 8];
                     case 7:
+                        console.log("service clinent is null");
+                        _e.label = 8;
+                    case 8: return [3 /*break*/, 10];
+                    case 9:
+                        _d = _e.sent();
+                        weatherSpeech += "There is an error, we cannot retrieve the current weather.";
+                        return [3 /*break*/, 10];
+                    case 10:
                         speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
                         // Get to bring item
                         toBringItemSpeech += GetToBringItemSpeech(user);

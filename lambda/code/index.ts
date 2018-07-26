@@ -29,7 +29,7 @@ const LaunchRequestHandler = {
 		if(Object.keys(result).length === 0){
 			speechText += 	"Welcome to Adventure Assistant! " +
 							"Say I am leaving before you going out and I will " +
-							"tell you about the news, the weather, and remind you what to bring before you leave the house!" + 
+							"tell you about the news, the weather, and remind you what to bring before you leave the house! " + 
 							"Now try saying I am leaving";
 
 			let newUser = new User();
@@ -86,17 +86,34 @@ const GoingOutIntentHandler = {
 		// Get Weather
 		weatherSpeech += "About the weather. ";
 		const { requestEnvelope, serviceClientFactory } = handlerInput;
-		const { deviceId } = requestEnvelope.context.System.device;
-		if(serviceClientFactory != null){
-			const deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
-			const address = await deviceAddressServiceClient.getFullAddress(deviceId);
-			
-			if(address.postalCode != undefined) {
-				weatherSpeech += await GetWeather(address.postalCode);
-			}
-		} else {
-			console.log("service clinent is null");
+
+		const consentToken = requestEnvelope.context.System.user.permissions && requestEnvelope.context.System.user.permissions.consentToken;
+		if (!consentToken)
+		{
+			weatherSpeech = "I do not have the permission to check your current location for the weather.";
 		}
+		else
+		{
+			try
+			{
+				const { deviceId } = requestEnvelope.context.System.device;
+				if(serviceClientFactory != null){
+					const deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
+					const address = await deviceAddressServiceClient.getFullAddress(deviceId);
+					
+					if(address.postalCode != undefined) {
+						weatherSpeech += await GetWeather(address.postalCode);
+					}
+				} else {
+					console.log("service clinent is null");
+				}
+			}
+			catch
+			{
+				weatherSpeech += "There is an error, we cannot retrieve the current weather.";
+			}
+		}
+		
 		speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
 
 		// Get to bring item
