@@ -13,6 +13,19 @@
             }
           }
         }
+      },
+      "resources": {
+        "lambda": [
+          {
+            "arn": "arn:aws:lambda:us-east-1:147881111193:function:AdventureAssistant",
+            "functionName": "arn:aws:lambda:us-east-1:147881111193:function:AdventureAssistant",
+            "awsRegion": "us-east-1",
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "revisionId": "a806283b-a3bb-419f-a6c3-eb8242a6afa2"
+          }
+        ]
       }
     }
   }
