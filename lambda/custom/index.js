@@ -104,64 +104,138 @@ var GoingOutIntentHandler = {
     },
     handle: function (handlerInput) {
         return __awaiter(this, void 0, void 0, function () {
-            var speechText, weatherSpeech, newsSpeech, toBringItemSpeech, user, _a, _b, requestEnvelope, serviceClientFactory, consentToken, deviceId, deviceAddressServiceClient, address, _c, _d;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var speechText, weatherSpeech, toBringItemSpeech, user, _a, requestEnvelope, serviceClientFactory, consentToken, deviceId, deviceAddressServiceClient, address, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         speechText = '';
                         weatherSpeech = '';
-                        newsSpeech = '';
                         toBringItemSpeech = '';
                         _a = Class_1.User.bind;
                         return [4 /*yield*/, handlerInput.attributesManager.getPersistentAttributes()];
                     case 1:
-                        user = new (_a.apply(Class_1.User, [void 0, _e.sent()]))();
-                        // Get news
-                        newsSpeech += "Today news. ";
-                        _b = newsSpeech;
-                        return [4 /*yield*/, GetNews(true)];
-                    case 2:
-                        newsSpeech = _b + _e.sent();
-                        speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+                        user = new (_a.apply(Class_1.User, [void 0, _d.sent()]))();
+                        // Get to bring item
+                        toBringItemSpeech += GetToBringItemSpeech(user);
+                        speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
                         // Get Weather
                         weatherSpeech += "About the weather. ";
                         requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
                         consentToken = requestEnvelope.context.System.user.permissions && requestEnvelope.context.System.user.permissions.consentToken;
-                        if (!!consentToken) return [3 /*break*/, 3];
+                        if (!!consentToken) return [3 /*break*/, 2];
                         weatherSpeech = "I do not have the permission to check your current location for the weather.";
-                        return [3 /*break*/, 10];
-                    case 3:
-                        _e.trys.push([3, 9, , 10]);
+                        return [3 /*break*/, 9];
+                    case 2:
+                        _d.trys.push([2, 8, , 9]);
                         deviceId = requestEnvelope.context.System.device.deviceId;
-                        if (!(serviceClientFactory != null)) return [3 /*break*/, 7];
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 6];
                         deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
                         return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
-                    case 4:
-                        address = _e.sent();
-                        if (!(address.postalCode != undefined)) return [3 /*break*/, 6];
-                        _c = weatherSpeech;
+                    case 3:
+                        address = _d.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 5];
+                        _b = weatherSpeech;
                         return [4 /*yield*/, GetWeather(address.postalCode)];
-                    case 5:
-                        weatherSpeech = _c + _e.sent();
-                        _e.label = 6;
-                    case 6: return [3 /*break*/, 8];
-                    case 7:
+                    case 4:
+                        weatherSpeech = _b + _d.sent();
+                        _d.label = 5;
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
                         console.log("service clinent is null");
-                        _e.label = 8;
-                    case 8: return [3 /*break*/, 10];
-                    case 9:
-                        _d = _e.sent();
+                        _d.label = 7;
+                    case 7: return [3 /*break*/, 9];
+                    case 8:
+                        _c = _d.sent();
                         weatherSpeech += "There is an error, we cannot retrieve the current weather.";
-                        return [3 /*break*/, 10];
-                    case 10:
+                        return [3 /*break*/, 9];
+                    case 9:
                         speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
-                        // Get to bring item
-                        toBringItemSpeech += GetToBringItemSpeech(user);
-                        speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
-                        speechText += "Have fun";
+                        speechText += "Would you like to hear the news?";
+                        handlerInput.attributesManager.setSessionAttributes({
+                            IsFirstSession: false,
+                            YesHandler: Constant_1.Handler.GetNewsIntentHandler,
+                            NoHandler: Constant_1.Handler.GoodByeIntentHandler,
+                            GoingOut: "Yes"
+                        });
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
                                 .getResponse()];
+                }
+            });
+        });
+    }
+};
+var GetNewsIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'GetNewsIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var newsSpeech, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        newsSpeech = "";
+                        newsSpeech += "Today news. ";
+                        _a = newsSpeech;
+                        return [4 /*yield*/, GetNews(true)];
+                    case 1:
+                        newsSpeech = _a + _b.sent();
+                        newsSpeech += "Have fun";
+                        return [2 /*return*/, handlerInput.responseBuilder
+                                .speak(newsSpeech)
+                                .getResponse()];
+                }
+            });
+        });
+    }
+};
+var GetWeatherIntentHandler = {
+    canHandle: function (handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'GetWeatherIntent';
+    },
+    handle: function (handlerInput) {
+        return __awaiter(this, void 0, void 0, function () {
+            var weatherSpeech, requestEnvelope, serviceClientFactory, consentToken, deviceId, deviceAddressServiceClient, address, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        weatherSpeech = "";
+                        weatherSpeech += "About the weather. ";
+                        requestEnvelope = handlerInput.requestEnvelope, serviceClientFactory = handlerInput.serviceClientFactory;
+                        consentToken = requestEnvelope.context.System.user.permissions && requestEnvelope.context.System.user.permissions.consentToken;
+                        if (!!consentToken) return [3 /*break*/, 1];
+                        weatherSpeech = "I do not have the permission to check your current location for the weather.";
+                        return [3 /*break*/, 8];
+                    case 1:
+                        _c.trys.push([1, 7, , 8]);
+                        deviceId = requestEnvelope.context.System.device.deviceId;
+                        if (!(serviceClientFactory != null)) return [3 /*break*/, 5];
+                        deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
+                        return [4 /*yield*/, deviceAddressServiceClient.getFullAddress(deviceId)];
+                    case 2:
+                        address = _c.sent();
+                        if (!(address.postalCode != undefined)) return [3 /*break*/, 4];
+                        _a = weatherSpeech;
+                        return [4 /*yield*/, GetWeather(address.postalCode)];
+                    case 3:
+                        weatherSpeech = _a + _c.sent();
+                        _c.label = 4;
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        console.log("service clinent is null");
+                        _c.label = 6;
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        _b = _c.sent();
+                        weatherSpeech += "There is an error, we cannot retrieve the current weather.";
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, handlerInput.responseBuilder
+                            .speak(weatherSpeech)
+                            .withShouldEndSession(false)
+                            .getResponse()];
                 }
             });
         });
@@ -399,7 +473,14 @@ var GoodByeIntentHandler = {
         return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
     },
     handle: function (handlerInput) {
-        var speechText = 'GoodBye!';
+        var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        var speechText = "";
+        if (sessionAttributes.GoingOut === "Yes") {
+            speechText = "Have fun";
+        }
+        else {
+            speechText = 'GoodBye!';
+        }
         return handlerInput.responseBuilder
             .speak(speechText)
             .getResponse();

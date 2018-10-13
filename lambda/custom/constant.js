@@ -14,6 +14,8 @@ var Handler;
 (function (Handler) {
     Handler["LaunchRequestHandler"] = "LaunchRequestHandler";
     Handler["GoingOutIntentHandler"] = "GoingOutIntentHandler";
+    Handler["GetNewsIntentHandler"] = "GetNewsIntentHandler";
+    Handler["GetWeatherIntentHandler"] = "GetWeatherIntentHandler";
     Handler["AddItemToListIntentHandler"] = "AddItemToListIntentHandler";
     Handler["RemoveItemFromListIntentHandler"] = "RemoveItemFromListIntentHandler";
     Handler["GetItemFromListIntentHandler"] = "GetItemFromListIntentHandler";

@@ -1,0 +1,5 @@
+Typescript:
+npx tsc -watch
+
+Alexa CLI:
+ask deploy -t lambda

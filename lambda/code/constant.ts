@@ -14,6 +14,8 @@ export enum Handler
 {
 	LaunchRequestHandler = "LaunchRequestHandler",
 	GoingOutIntentHandler = "GoingOutIntentHandler",
+	GetNewsIntentHandler = "GetNewsIntentHandler",
+	GetWeatherIntentHandler = "GetWeatherIntentHandler",
 	AddItemToListIntentHandler = "AddItemToListIntentHandler",
 	RemoveItemFromListIntentHandler = "RemoveItemFromListIntentHandler",
 	GetItemFromListIntentHandler = "GetItemFromListIntentHandler",

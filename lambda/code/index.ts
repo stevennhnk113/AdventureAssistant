@@ -74,14 +74,12 @@ const GoingOutIntentHandler = {
 	async handle(handlerInput: Alexa.HandlerInput) {
 		let speechText = '';
 		let weatherSpeech = '';
-		let newsSpeech = '';
 		let toBringItemSpeech = '';
 		let user = new User(await handlerInput.attributesManager.getPersistentAttributes() as User);
 
-		// Get news
-		newsSpeech += "Today news. ";
-		newsSpeech += await GetNews(true);
-		speechText += SpeechHelper.AddBreak(newsSpeech, 1);
+		// Get to bring item
+		toBringItemSpeech += GetToBringItemSpeech(user);
+		speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
 
 		// Get Weather
 		weatherSpeech += "About the weather. ";
@@ -116,17 +114,83 @@ const GoingOutIntentHandler = {
 		
 		speechText += SpeechHelper.AddBreak(weatherSpeech, 1);
 
-		// Get to bring item
-		toBringItemSpeech += GetToBringItemSpeech(user);
-		speechText += SpeechHelper.AddBreak(toBringItemSpeech, 1);
-
-		speechText += "Have fun";
+		speechText += "Would you like to hear the news?";
+		handlerInput.attributesManager.setSessionAttributes(
+			{
+				IsFirstSession: false,
+				YesHandler: Handler.GetNewsIntentHandler,
+				NoHandler: Handler.GoodByeIntentHandler,
+				GoingOut: "Yes"
+			}
+		);
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
 			.getResponse();
 	}
 };
+
+const GetNewsIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'GetNewsIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		let newsSpeech = "";
+		newsSpeech += "Today news. ";
+		newsSpeech += await GetNews(true);
+		newsSpeech += "Have fun";
+
+		return handlerInput.responseBuilder
+			.speak(newsSpeech)
+			.getResponse();
+	}
+}
+
+const GetWeatherIntentHandler = {
+	canHandle(handlerInput: Alexa.HandlerInput) {
+		return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+			&& handlerInput.requestEnvelope.request.intent.name === 'GetWeatherIntent';
+	},
+	async handle(handlerInput: Alexa.HandlerInput) {
+		// Get Weather
+		let weatherSpeech = "";
+		weatherSpeech += "About the weather. ";
+		const { requestEnvelope, serviceClientFactory } = handlerInput;
+
+		const consentToken = requestEnvelope.context.System.user.permissions && requestEnvelope.context.System.user.permissions.consentToken;
+		if (!consentToken)
+		{
+			weatherSpeech = "I do not have the permission to check your current location for the weather.";
+		}
+		else
+		{
+			try
+			{
+				const { deviceId } = requestEnvelope.context.System.device;
+				if(serviceClientFactory != null){
+					const deviceAddressServiceClient = serviceClientFactory.getDeviceAddressServiceClient();
+					const address = await deviceAddressServiceClient.getFullAddress(deviceId);
+					
+					if(address.postalCode != undefined) {
+						weatherSpeech += await GetWeather(address.postalCode);
+					}
+				} else {
+					console.log("service clinent is null");
+				}
+			}
+			catch
+			{
+				weatherSpeech += "There is an error, we cannot retrieve the current weather.";
+			}
+		}
+
+		return handlerInput.responseBuilder
+			.speak(weatherSpeech)
+			.withShouldEndSession(false)
+			.getResponse();
+	}
+}
 
 const AddItemToListIntentHandler = {
 	canHandle(handlerInput: Alexa.HandlerInput) {
@@ -367,7 +431,16 @@ const GoodByeIntentHandler = {
 		return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
 	},
 	handle(handlerInput: Alexa.HandlerInput) {
-		const speechText = 'GoodBye!';
+		let sessionAttributes =  handlerInput.attributesManager.getSessionAttributes();
+		
+		let speechText = "";
+		if(sessionAttributes.GoingOut === "Yes"){
+			speechText = "Have fun";
+		}
+		else
+		{
+			speechText = 'GoodBye!';
+		}
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
