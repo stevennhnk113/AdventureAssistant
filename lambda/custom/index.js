@@ -474,6 +474,7 @@ var GoodByeIntentHandler = {
     },
     handle: function (handlerInput) {
         var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        console.log(sessionAttributes);
         var speechText = "";
         if (sessionAttributes.GoingOut === "Yes") {
             speechText = "Have fun";
@@ -684,7 +685,7 @@ function GetToBringItemSpeech(data) {
         }
         else {
             console.log("Not Empty");
-            var speech = "Also. Don't for get to bring your ";
+            var speech = "Don't forget to bring your ";
             var itemList = alwaysList.GetList();
             for (var _i = 0, itemList_1 = itemList; _i < itemList_1.length; _i++) {
                 var item = itemList_1[_i];
@@ -731,7 +732,7 @@ var persistenceAdapterConfig = {
 };
 var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapterConfig);
 exports.handler = Alexa.SkillBuilders.standard()
-    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, EmptyListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, YesIntentHandler, NoIntentHandler, SessionEndedRequestHandler)
+    .addRequestHandlers(LaunchRequestHandler, GoingOutIntentHandler, GetNewsIntentHandler, AddItemToListIntentHandler, RemoveItemFromListIntentHandler, GetItemFromListIntentHandler, EmptyListIntentHandler, HelpIntentHandler, CancelAndStopIntentHandler, YesIntentHandler, NoIntentHandler, SessionEndedRequestHandler)
     .withTableName("AdventureAssistant")
     .withAutoCreateTable(true)
     .lambda();

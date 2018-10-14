@@ -433,6 +433,8 @@ const GoodByeIntentHandler = {
 	handle(handlerInput: Alexa.HandlerInput) {
 		let sessionAttributes =  handlerInput.attributesManager.getSessionAttributes();
 		
+		console.log(sessionAttributes);
+
 		let speechText = "";
 		if(sessionAttributes.GoingOut === "Yes"){
 			speechText = "Have fun";
@@ -659,7 +661,7 @@ function GetToBringItemSpeech(data: User) {
 				"You can add item that you want to bring by saying add to bring item. ";
 		} else {
 			console.log("Not Empty");
-			let speech = "Also. Don't for get to bring your ";
+			let speech = "Don't forget to bring your ";
 			let itemList = alwaysList.GetList();
 
 			for(let item of itemList)
@@ -722,6 +724,7 @@ var persistenceAdapter = new Alexa.DynamoDbPersistenceAdapter(persistenceAdapter
 exports.handler = Alexa.SkillBuilders.standard()
 	.addRequestHandlers(LaunchRequestHandler,
 		GoingOutIntentHandler,
+		GetNewsIntentHandler,
 		AddItemToListIntentHandler,
 		RemoveItemFromListIntentHandler,
 		GetItemFromListIntentHandler,
