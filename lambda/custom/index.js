@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -159,6 +159,7 @@ var GoingOutIntentHandler = {
                         });
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(speechText)
+                                .withShouldEndSession(false)
                                 .getResponse()];
                 }
             });
@@ -176,6 +177,7 @@ var GetNewsIntentHandler = {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        console.log("In get news");
                         newsSpeech = "";
                         newsSpeech += "Today news. ";
                         _a = newsSpeech;
@@ -183,6 +185,7 @@ var GetNewsIntentHandler = {
                     case 1:
                         newsSpeech = _a + _b.sent();
                         newsSpeech += "Have fun";
+                        console.log(newsSpeech);
                         return [2 /*return*/, handlerInput.responseBuilder
                                 .speak(newsSpeech)
                                 .getResponse()];
@@ -431,7 +434,11 @@ var YesIntentHandler = {
         var sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
         switch (sessionAttributes.YesHandler) {
             case Constant_1.Handler.GoingOutIntentHandler:
+                console.log("giubg out");
                 return GoingOutIntentHandler.handle(handlerInput);
+            case Constant_1.Handler.GetNewsIntentHandler:
+                console.log("get news");
+                return GetNewsIntentHandler.handle(handlerInput);
             default:
                 var speechText = "Sorry! We encounter a problem.";
                 return handlerInput.responseBuilder

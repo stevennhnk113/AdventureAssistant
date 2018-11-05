@@ -126,6 +126,7 @@ const GoingOutIntentHandler = {
 
 		return handlerInput.responseBuilder
 			.speak(speechText)
+			.withShouldEndSession(false)
 			.getResponse();
 	}
 };
@@ -136,10 +137,13 @@ const GetNewsIntentHandler = {
 			&& handlerInput.requestEnvelope.request.intent.name === 'GetNewsIntent';
 	},
 	async handle(handlerInput: Alexa.HandlerInput) {
+		console.log("In get news");
 		let newsSpeech = "";
 		newsSpeech += "Today news. ";
 		newsSpeech += await GetNews(true);
 		newsSpeech += "Have fun";
+
+		console.log(newsSpeech);
 
 		return handlerInput.responseBuilder
 			.speak(newsSpeech)
@@ -381,7 +385,11 @@ const YesIntentHandler = {
 		switch(sessionAttributes.YesHandler)
 		{
 			case Handler.GoingOutIntentHandler:
+				console.log("giubg out");
 				return GoingOutIntentHandler.handle(handlerInput);
+			case Handler.GetNewsIntentHandler:
+				console.log("get news");
+				return GetNewsIntentHandler.handle(handlerInput);
 			default:
 				var speechText = "Sorry! We encounter a problem."
 
